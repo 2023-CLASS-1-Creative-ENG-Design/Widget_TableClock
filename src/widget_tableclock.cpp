@@ -5,7 +5,6 @@
 #include "EEPROM.h"
 #include <WiFi.h>
 #include <WiFiClient.h>
-#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 
 #include <ArduinoJson.h>
@@ -87,18 +86,13 @@ typedef struct
 
 typedef struct
 {
-  int mobileNo;        // 정류소 번호
   char routeName[30];  // 노선 번호
-
+  
   char stationName[100];  // 정류소명
-  int stationId;          // 정류소 아이디
-  int routeId;            // 노선 아이디
-  int staOrder;           // 정류소 순번
-
-  int locationNo1;
-  int predictTime1;
-  int locationNo2;
-  int predictTime2;
+  char stationEncoded[100];
+  char stationId[100];    // 정류소 아이디
+  char remainingStops[100];
+  char arrivalTime[100];
 } BUS;
 
 typedef struct
@@ -145,8 +139,11 @@ const int daylightOffset_sec = 0;
 wifi_mode_t esp_wifi_mode = WIFI_MODE_NULL;
 
 using namespace tinyxml2;
-DynamicJsonDocument jsonDoc(2048);
 char xmlDoc[10000];
+DynamicJsonDocument jsonDoc(2048);
+DynamicJsonDocument jsonDoc1(2048);
+DynamicJsonDocument jsonDoc2(2048);
+
 /*************************** [Variable Declaration] ************************************/
 
 /*************************** [Function Declaration] ************************************/
@@ -160,13 +157,31 @@ bool checkWiFiStatus();
 bool getDateTime();
 bool getWeather(const char* city);
 
-bool getBusStationId(int mobileNo);
-bool getStaOrder(int stationId, const char* routeName);
-bool getBusArrival(const char* routeName, int stationId, int routeId, int staOrder);
+bool getBusStationId();
+bool getBusArrival();
 
 bool getStockPriceKRPreviousDay(const char* code);
 bool getStockPriceUSRealTime(const char* name);
 /*************************** [Function Declaration] ************************************/
+
+char *url_encode(const char *str) {
+    const char *reserved = "=&+?/;#~%'\"<>{}[]|\\^";
+    size_t len = strlen(str);
+    char *encoded = (char *)malloc(len * 3 + 1);
+    size_t j = 0;
+
+    for (size_t i = 0; i < len; ++i) {
+        if (isalnum(str[i]) || strchr(reserved, str[i]) != NULL) {
+            encoded[j++] = str[i];
+        } else {
+            snprintf(&encoded[j], 4, "%%%02X", (unsigned char)str[i]);
+            j += 3;
+        }
+    }
+
+    encoded[j] = '\0';
+    return encoded;
+}
 
 void setup() 
 {
@@ -215,7 +230,7 @@ void loop()
         if (key == 'r') getUserData(1);
         // else if (key == 't') getDateTime();
         // else if (key == 'w') while(!getWeather(myWeather.city[0])) delay(1000);
-        // else if (key == 'b') while(!getBusArrival(myBus.routeName, myBus.stationId, myBus.routeId, myBus.staOrder)) delay(1000);
+        // else if (key == 'b') while(!getBusArrival()) delay(1000);
         // else if (key == 'k') while(!getStockPriceKRPreviousDay(myStockKR.code[0])) delay(1000);
         // else if (key == 'u') while(!getStockPriceUSRealTime(myStockUS.name[0])) delay(3000);
     }
@@ -288,7 +303,7 @@ void loop()
                     tick_old[2] = tick_cur;
                 break;
                 case 2:
-                    while(!getBusArrival(myBus.routeName, myBus.stationId, myBus.routeId, myBus.staOrder)) delay(1000);
+                    while(!getBusArrival()) delay(1000);
                     tick_old[3] = tick_cur;
                 break;
                 case 3:
@@ -323,7 +338,7 @@ ignore:
 
     if(((tick_cur - tick_old[3]) > 15000) && (myData.page == 2))
     {
-        while(!getBusArrival(myBus.routeName, myBus.stationId, myBus.routeId, myBus.staOrder)) delay(1000);
+        while(!getBusArrival()) delay(1000);
         tick_old[3] = tick_cur;
     } 
 
@@ -412,16 +427,14 @@ reset:
 
     while (1)  // wait user data
     {
-        while (err_chk_2 < 6) 
+        while (Serial.available()) 
         {
-            if(Serial.available()) {
-                input[index] = Serial.read();
-                if (input[index] == '[') err_chk_1++;
-                if (input[index] == ']') err_chk_2++;
+            input[index] = Serial.read();
+            if (input[index] == '[') err_chk_1++;
+            if (input[index] == ']') err_chk_2++;
 
-                index++;
-                input_flag = true;
-            }
+            index++;
+            input_flag = true;
         }
 
         if (input_flag) 
@@ -444,7 +457,6 @@ reset:
             else 
             {
                 Serial.println("Input Error!");
-                Serial.println(input);
                 memset(input, '\0', 240);
                 index = 0;
                 err_chk_1 = 0;
@@ -527,8 +539,7 @@ parse:
     initWiFi();
     delay(3000);
 
-    while(!getBusStationId(myBus.mobileNo)) delay(1000);
-    while(!getStaOrder(myBus.stationId, myBus.routeName)) delay(1000);
+    while(!getBusStationId()) delay(1000);
 }
 
 void parseUserData()
@@ -581,12 +592,14 @@ void parseUserData()
             {
                 break;
             }
-            mobileNoBuf[index++] = myData.bus[i];
+            myBus.stationName[index++] = myData.bus[i];
         }
     }
-    myBus.mobileNo = atoi(mobileNoBuf);
+    auto foo = url_encode(myBus.stationName);
+    strcpy(myBus.stationEncoded, foo);
+    free(foo);
     printf("[BUS] %s\r\n", myBus.routeName);
-    printf("[STATION] %d\r\n", myBus.mobileNo);
+    printf("[STATION] %s\r\n", myBus.stationName);
 
     // 국내 주식 파싱
     for(int i = 0, num = 0, index = 0; i < sizeof(myData.KR); i++)
@@ -821,199 +834,141 @@ bool getWeather(const char* city)
     return true;
 }
 
-bool getBusStationId(int mobileNo) 
+bool getBusStationId() 
 {
-    return true;
-    Serial.println("-------------------------------------");
-    Serial.println("[REQUEST] Bus Station ID");
-
-    WiFiClient mySocket;
-    HTTPClient myHTTP;
-
-    int httpCode;
-    char buffer[300];
-    myBus.mobileNo = mobileNo;
-
-    snprintf(buffer, sizeof(buffer), "http://apis.data.go.kr/6410000/busstationservice/getBusStationList?serviceKey=%s&keyword=%d",PUBLIC_DATA_API_KEY, myBus.mobileNo);
-    myHTTP.begin(mySocket, buffer);
-    delay(500);
-
-    httpCode = myHTTP.GET();
-    printf("[HTTP CODE] %d \r\n", httpCode);
-
-    if (httpCode == HTTP_CODE_OK) 
-    {
-        Serial.println("[OK]");
-        strcpy(xmlDoc, myHTTP.getString().c_str());
-    } 
-    else 
-    {
-        Serial.println("[ERROR]");
-        myHTTP.end();
-        Serial.println("-------------------------------------");
-        return false;
-    }
+  Serial.println("-------------------------------------");
+  Serial.println("[REQUEST] Bus Station Info");
+  
+  WiFiClient mySocket;
+  HTTPClient myHTTP;                                                                                                    
+  
+  int httpCode;
+  char buffer[300];
+  
+  snprintf(buffer, sizeof(buffer), "http://3.14.181.15:8080/station/search/%s", myBus.stationEncoded);
+  myHTTP.begin(mySocket, buffer);
+  delay(500);
+  
+  httpCode = myHTTP.GET();
+  printf("[HTTP CODE] %d \r\n", httpCode);
+  
+  if (httpCode == HTTP_CODE_OK) 
+  {
+    Serial.println("[OK]");
+    auto foo = myHTTP.getString();
+    Serial.println(foo);
+    deserializeJson(jsonDoc1, foo);
+  } 
+  else 
+  {
+    Serial.println("[ERROR]");
     myHTTP.end();
-
-    XMLDocument xmlDocument;
-    if (xmlDocument.Parse(xmlDoc) != XML_SUCCESS) 
-    {
-        Serial.println("[PARSE ERROR]");
-        myHTTP.end();
-        Serial.println("-------------------------------------");
-        return false;
-    };
-
-    XMLNode* root = xmlDocument.RootElement();
-
-    // 정류소아이디
-    XMLElement* element = root->FirstChildElement("msgBody")->FirstChildElement("busStationList")->FirstChildElement("stationId");
-    element->QueryIntText(&myBus.stationId);
-    printf("[정류소아이디] %d\r\n", myBus.stationId);
-
-    // 정류소명
-    element = root->FirstChildElement("msgBody")->FirstChildElement("busStationList")->FirstChildElement("stationName");
-    strcpy(myBus.stationName, element->GetText());
-    printf("[정류소명] %s\r\n", myBus.stationName);
-
     Serial.println("-------------------------------------");
-    return true;
+    return false;
+  }
+  myHTTP.end();
+  
+  const char* busID = jsonDoc1[0]["id"];
+  strcpy(myBus.stationId, busID);
+  
+  // 정류소아이디
+  printf("[정류소아이디] %s\r\n", myBus.stationId);
+  
+  // 정류소명
+  printf("[정류소명] %s\r\n", myBus.stationName);
+  
+  Serial.println("-------------------------------------");
+  return true;
 }
 
-bool getStaOrder(int stationId, const char* routeName) 
+bool getBusArrival()  // getBusArrivalItem Operation
 {
-    return true;
-    Serial.println("-------------------------------------");
-    Serial.println("[REQUEST] Bus StaOrder");
-
-    WiFiClient mySocket;
-    HTTPClient myHTTP;
-
-    int httpCode;
-    char buffer[300];
-
-    snprintf(buffer, sizeof(buffer), "http://apis.data.go.kr/6410000/busstationservice/getBusStationViaRouteList?serviceKey=%s&stationId=%d", PUBLIC_DATA_API_KEY, stationId);
-    myHTTP.begin(mySocket, buffer);
-    delay(500);
-
-    if (myHTTP.GET() == HTTP_CODE_OK) {
-        Serial.println("[OK]");
-        strcpy(xmlDoc, myHTTP.getString().c_str());
-    } 
-    else 
-    {
-        Serial.println("[ERROR]");
-        myHTTP.end();
-        Serial.println("-------------------------------------");
-        return false;
-    }
+  Serial.println("-------------------------------------");
+  Serial.println("[REQUEST] BUS Arrival");
+  
+  // 화면 전환
+  img.pushImage(0, 0, 240, 240, DUCK_BUS_240);
+  img.pushSprite(0, 0);
+  
+  WiFiClient mySocket;
+  HTTPClient myHTTP;
+  
+  int httpCode;
+  char buffer[300];
+  StaticJsonDocument<200> doc;
+  
+  
+  snprintf(buffer, sizeof(buffer), "http://3.14.181.15:8080/station/%s",myBus.stationId);
+  myHTTP.begin(mySocket, buffer);
+  delay(500);
+  
+  httpCode = myHTTP.GET();
+  printf("[HTTP CODE] %d \r\n", httpCode);
+  
+  if (httpCode == HTTP_CODE_OK) 
+  {
+    Serial.println("[OK]");
+    deserializeJson(jsonDoc2, myHTTP.getString());
+  } 
+  else 
+  {
+    Serial.println("[ERROR]");
     myHTTP.end();
-
-    XMLDocument xmlDocument;
-    if (xmlDocument.Parse(xmlDoc) != XML_SUCCESS) 
-    {
-        Serial.println("[PARSE ERROR]");
-        myHTTP.end();
-        Serial.println("-------------------------------------");
-        return false;
-  };
-
-    XMLNode* root = xmlDocument.RootElement();
-    XMLElement* element = root->FirstChildElement("msgBody")->FirstChildElement("busRouteList");
-
-    char routeNameBuf[30];
-    for (XMLElement* routeList = element; routeList != NULL; routeList = routeList->NextSiblingElement()) 
-    {
-        strcpy(routeNameBuf, routeList->FirstChildElement("routeName")->GetText());
-        printf("%s\r\n", routeNameBuf);
-
-        if (strcmp(routeNameBuf, routeName) == 0) 
-        {
-            routeList->FirstChildElement("routeId")->QueryIntText(&myBus.routeId);
-            routeList->FirstChildElement("staOrder")->QueryIntText(&myBus.staOrder);
-            break;
-        }
+    Serial.println("-------------------------------------");
+    return false;
+  }
+  myHTTP.end();
+  
+  // JSON 배열의 크기
+  int arraySize = jsonDoc2.size();
+  int flag = 0;
+  // 배열 요소를 반복하여 객체 정보 추출
+  for (int i = 0; i < arraySize; i++) {
+    JsonObject Bus = jsonDoc2[i];
+    const char* busName = Bus["name"];
+    if (strcmp(busName, myBus.routeName) == 0) {
+      // 버스 정보에 대한 반복문
+      auto bus = Bus["bus"];
+      if(bus.size() > 0 && bus[0].containsKey("남은정류소")) {
+        const char* remainingStops = bus[0]["남은정류소"];
+        const char* arrivalTime = bus[0]["도착예정시간"];
+        strcpy(myBus.remainingStops, remainingStops);
+        strcpy(myBus.arrivalTime, arrivalTime);
+      }
+      else {
+        strcpy(myBus.remainingStops, "-1");
+        strcpy(myBus.arrivalTime, "-1");
+      }
+      break;
     }
-
-    printf("[노선아이디] %d\r\n", myBus.routeId);
-    printf("[정류소순번] %d\r\n", myBus.staOrder);
-
-    Serial.println("-------------------------------------");
-    return true;
-}
-
-bool getBusArrival(const char* routeName, int stationId, int routeId, int staOrder)  // getBusArrivalItem Operation
-{
-    return true;
-
-    Serial.println("-------------------------------------");
-    Serial.println("[REQUEST] BUS Arrival");
-
-    // 화면 전환
-    img.pushImage(0, 0, 240, 240, DUCK_BUS_240);
-    img.pushSprite(0, 0);
-
-    WiFiClient mySocket;
-    HTTPClient myHTTP;
-
-    int httpCode;
-    char buffer[300];
-    memset(xmlDoc, 0, sizeof(xmlDoc));
-
-    snprintf(buffer, sizeof(buffer), "http://apis.data.go.kr/6410000/busarrivalservice/getBusArrivalItem?serviceKey=%s&stationId=%d&routeId=%d&staOrder=%d", PUBLIC_DATA_API_KEY, stationId, routeId, staOrder);
-    myHTTP.begin(mySocket, buffer);
-    delay(500);
-
-    httpCode = myHTTP.GET();
-    printf("[HTTP CODE] %d \r\n", httpCode);
-
-    if (httpCode == HTTP_CODE_OK) 
-    {
-        Serial.println("[OK]");
-        strcpy(xmlDoc, myHTTP.getString().c_str());
-    } 
-    else 
-    {
-        Serial.println("[ERROR]");
-        myHTTP.end();
-        Serial.println("-------------------------------------");
-        return false;
+    else {
+      continue;
     }
-    myHTTP.end();
+  }
+  // 첫번째차량 위치정보
+  printf("[%s버스 남은 정류소] %s\r\n", myBus.routeName, myBus.remainingStops);
+  
+  // 첫번째차량 도착예상시간
+  printf("[%s버스 도착예상시간] %s\r\n", myBus.routeName, myBus.arrivalTime);
+  
+  // 정류소명
+  String staStr(myBus.stationName);
+  int nameLen = staStr.length() / 3;
+  AimHangul_v2(120 - (float)(nameLen/2) * 16, 50, staStr, TFT_WHITE);  // 중앙정렬
 
-    XMLDocument xmlDocument;
-    if (xmlDocument.Parse(xmlDoc) != XML_SUCCESS) 
-    {
-        Serial.println("[PARSE ERROR]");
-        Serial.println("-------------------------------------");
-        return false;
-    };
-
-    XMLNode* root = xmlDocument.RootElement();
-
-    // 첫번째차량 위치정보
-    XMLElement* element = root->FirstChildElement("msgBody")->FirstChildElement("busArrivalItem")->FirstChildElement("locationNo1");
-    element->QueryIntText(&myBus.locationNo1);
-    printf("[첫번째버스 위치정보] %d번째전 정류소\r\n", myBus.locationNo1);
-
-    // 첫번째차량 도착예상시간
-    element = root->FirstChildElement("msgBody")->FirstChildElement("busArrivalItem")->FirstChildElement("predictTime1");
-    element->QueryIntText(&myBus.predictTime1);
-    printf("[첫번째버스 도착예상시간] %d분후\r\n", myBus.predictTime1);
-
-    // 정류소명
-    String staStr(myBus.stationName);
-    int nameLen = strlen(myBus.stationName) / 3;
-    AimHangul_v2(120 - (float)(nameLen/2) * 16, 50, staStr, TFT_WHITE);  // 중앙정렬
-
-    // 버스와 도착 시간
-    char preBuf[20];
-    snprintf(preBuf, sizeof(preBuf), "%s  %d분", myBus.routeName, myBus.predictTime1);
-    String preStr(preBuf);
-    AimHangul_v2(35, 100, preStr, TFT_WHITE);  // 중앙정렬
-
-    Serial.println("-------------------------------------");
-    return true;
+  // 버스와 도착 시간
+  char preBuf[100];
+  if(strcmp(myBus.arrivalTime, "-1")) {
+    snprintf(preBuf, sizeof(preBuf), "%s번 버스 %s후 도착", myBus.routeName, myBus.arrivalTime);
+  }
+  else {
+    snprintf(preBuf, sizeof(preBuf), "%s번 버스 경로상 부재", myBus.routeName);
+  }
+  String preStr(preBuf);
+  AimHangul_v2(35, 100, preStr, TFT_WHITE);  // 중앙정렬
+  
+  Serial.println("-------------------------------------");
+  return true;
 }
 
 bool getStockPriceKRPreviousDay(const char* code)  // 한국주식 전날 시세
