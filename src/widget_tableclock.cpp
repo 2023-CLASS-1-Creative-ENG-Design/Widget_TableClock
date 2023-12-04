@@ -82,8 +82,8 @@ typedef struct
 typedef struct
 {
   char city[2][20];
-  char weather[20];
-  int temp;
+  char weather[2][20];
+  int temp[2];
 } WEATHER;
 
 typedef struct
@@ -157,7 +157,7 @@ void initWiFi();
 bool checkWiFiStatus();
 
 bool getDateTime();
-bool getWeather(const char* city);
+bool getWeather(int);
 
 bool getBusStationId();
 bool getBusArrival();
@@ -224,8 +224,8 @@ void updateWeatherACallback() {
     myHTTP.end();
 
     const char* weather = jsonDoc["weather"][0]["main"];
-    strcpy(myWeather.weather, weather);
-    myWeather.temp = (int)(jsonDoc["main"]["temp"]) - 273.0;
+    strcpy(myWeather.weather[0], weather);
+    myWeather.temp[0] = (int)(jsonDoc["main"]["temp"]) - 273.0;
 }
 void updateWeatherBCallback() {
     WiFiClient mySocket;
@@ -251,8 +251,8 @@ void updateWeatherBCallback() {
     myHTTP.end();
 
     const char* weather = jsonDoc["weather"][0]["main"];
-    strcpy(myWeather.weather, weather);
-    myWeather.temp = (int)(jsonDoc["main"]["temp"]) - 273.0;
+    strcpy(myWeather.weather[1], weather);
+    myWeather.temp[1] = (int)(jsonDoc["main"]["temp"]) - 273.0;
 }
 
 void updateBusArrivalCallback() {
@@ -543,7 +543,7 @@ void loop()
                     tick_old[1] = tick_cur;
                 break;
                 case 1:
-                    while(!getWeather(myWeather.city[myData.page_we])) delay(1000);
+                    while(!getWeather(myData.page_we)) delay(1000);
                     tick_old[2] = tick_cur;
                 break;
                 case 2:
@@ -576,7 +576,7 @@ ignore:
 
     if(((tick_cur - tick_old[2]) > 30000) && (myData.page == 1))
     {
-        while(!getWeather(myWeather.city[myData.page_we])) delay(1000);
+        while(!getWeather(myData.page_we)) delay(1000);
         tick_old[2] = tick_cur;
     } 
 
@@ -980,7 +980,7 @@ bool getDateTime()
     return true;
 }
 
-bool getWeather(const char* city) 
+bool getWeather(int city) 
 {
     // 화면 전환
     img.pushImage(0, 0, 240, 240, DUCK_WEATHER_240);
@@ -990,19 +990,19 @@ bool getWeather(const char* city)
     tft.setCursor(60, 40);
     tft.setTextColor(TFT_WHITE);
     tft.setTextSize(3);
-    tft.print(city);
+    tft.print(myWeather.city[city]);
 
     // 날씨
     tft.setCursor(60, 70);
     tft.setTextColor(TFT_WHITE);
     tft.setTextSize(3);
-    tft.print(myWeather.weather);
+    tft.print(myWeather.weather[city]);
 
     // 기온
     tft.setCursor(60, 100);
     tft.setTextColor(TFT_WHITE);
     tft.setTextSize(3);
-    tft.print(myWeather.temp);
+    tft.print(myWeather.temp[city]);
     tft.print("C");
 
     return true;
