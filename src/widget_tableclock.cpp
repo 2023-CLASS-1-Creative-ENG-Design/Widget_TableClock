@@ -24,6 +24,8 @@ TFT_eSPI tft = TFT_eSPI();
 #include "DUCK_STOCK_US_240.h"
 #include "DUCK_SETTING_240.h"
 
+#include <TaskScheduler.h>
+
 /*************************** [CONSTANT Definition] ************************************/
 
 /* GC9A01 display */
@@ -162,7 +164,228 @@ bool getBusArrival();
 
 bool getStockPriceKRPreviousDay(const char* code);
 bool getStockPriceUSRealTime(const char* name);
+
+char *url_encode(const char *str);
 /*************************** [Function Declaration] ************************************/
+
+void updateDateTimeCallback();
+void updateWeatherACallback();
+void updateWeatherBCallback();
+void updateBusArrivalCallback();
+void updateStockPriceKRPreviousDayCallback();
+void updateStockPriceUSPreviousDayCallback();
+
+Task updateDateTime(5000, TASK_FOREVER, updateDateTimeCallback);
+Task updateWeatherA(150000, TASK_FOREVER, updateWeatherACallback);
+Task updateWeatherB(200000, TASK_FOREVER, updateWeatherBCallback);
+Task updateBusArrival(50000, TASK_FOREVER, updateBusArrivalCallback);
+Task updateStockPriceKRPreviousDay(100000, 1, updateStockPriceKRPreviousDayCallback);
+Task updateStockPriceUSPreviousDay(100000, 1, updateStockPriceUSPreviousDayCallback);
+
+Scheduler runner;
+
+
+void updateDateTimeCallback() {
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo)) {
+        return;
+    }
+
+    myTime.year = timeinfo.tm_year + 1900;
+    myTime.mon = timeinfo.tm_mon + 1;
+    myTime.mday = timeinfo.tm_mday;
+    myTime.wday = timeinfo.tm_wday;
+    myTime.hour = timeinfo.tm_hour;
+    myTime.min = timeinfo.tm_min;
+    myTime.sec = timeinfo.tm_sec;
+}
+
+void updateWeatherACallback() {
+    WiFiClient mySocket;
+    HTTPClient myHTTP;
+    char *city = myWeather.city[0];
+
+    int httpCode;
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), "http://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", city, OPENWEATHER_API_KEY);
+    myHTTP.begin(mySocket, buffer);
+
+    httpCode = myHTTP.GET();
+
+    if (httpCode == HTTP_CODE_OK) 
+    {
+        deserializeJson(jsonDoc, myHTTP.getString());
+    } 
+    else 
+    {
+        myHTTP.end();
+        return;
+    }
+    myHTTP.end();
+
+    const char* weather = jsonDoc["weather"][0]["main"];
+    strcpy(myWeather.weather, weather);
+    myWeather.temp = (int)(jsonDoc["main"]["temp"]) - 273.0;
+}
+void updateWeatherBCallback() {
+    WiFiClient mySocket;
+    HTTPClient myHTTP;
+    char *city = myWeather.city[1];
+
+    int httpCode;
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), "http://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", city, OPENWEATHER_API_KEY);
+    myHTTP.begin(mySocket, buffer);
+
+    httpCode = myHTTP.GET();
+
+    if (httpCode == HTTP_CODE_OK) 
+    {
+        deserializeJson(jsonDoc, myHTTP.getString());
+    } 
+    else 
+    {
+        myHTTP.end();
+        return;
+    }
+    myHTTP.end();
+
+    const char* weather = jsonDoc["weather"][0]["main"];
+    strcpy(myWeather.weather, weather);
+    myWeather.temp = (int)(jsonDoc["main"]["temp"]) - 273.0;
+}
+
+void updateBusArrivalCallback() {
+  WiFiClient mySocket;
+  HTTPClient myHTTP;
+  
+  int httpCode;
+  char buffer[300];
+  StaticJsonDocument<200> doc;
+  
+  snprintf(buffer, sizeof(buffer), "http://3.14.181.15:8080/station/%s",myBus.stationId);
+  myHTTP.begin(mySocket, buffer);
+  
+  httpCode = myHTTP.GET();
+  
+  if (httpCode == HTTP_CODE_OK) 
+  {
+    deserializeJson(jsonDoc2, myHTTP.getString());
+  } 
+  else 
+  {
+    myHTTP.end();
+    return;
+  }
+  myHTTP.end();
+  
+  // JSON 배열의 크기
+  int arraySize = jsonDoc2.size();
+  int flag = 0;
+  // 배열 요소를 반복하여 객체 정보 추출
+  for (int i = 0; i < arraySize; i++) {
+    JsonObject Bus = jsonDoc2[i];
+    if(!Bus.containsKey("name")) continue;
+    const char* busName = Bus["name"];
+    if (strcmp(busName, myBus.routeName) == 0) {
+      // 버스 정보에 대한 반복문
+      if(Bus.containsKey("bus") && Bus["bus"].size() > 0 && Bus["bus"][0].containsKey("남은정류소")) {
+        const char* remainingStops = Bus["bus"][0]["남은정류소"];
+        const char* arrivalTime = Bus["bus"][0]["도착예정시간"];
+        strcpy(myBus.remainingStops, remainingStops);
+        strcpy(myBus.arrivalTime, arrivalTime);
+      }
+      else {
+        strcpy(myBus.remainingStops, "-1");
+        strcpy(myBus.arrivalTime, "-1");
+      }
+      break;
+    }
+    else {
+      continue;
+    }
+  }
+}
+
+void updateStockPriceKRPreviousDayCallback() {
+    WiFiClient mySocket;
+    HTTPClient myHTTP;
+
+    int httpCode;
+    char buffer[300];
+
+    snprintf(buffer, sizeof(buffer), "http://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo?serviceKey=%s&numOfRows=1&pageNo=1&likeSrtnCd=%s", PUBLIC_DATA_API_KEY, myStockKR.code[myData.page_kr]);
+    myHTTP.begin(mySocket, buffer);
+
+    httpCode = myHTTP.GET();
+
+    if (httpCode == HTTP_CODE_OK) {
+        Serial.println("[OK]");
+        strcpy(xmlDoc, myHTTP.getString().c_str());
+    } else {
+        myHTTP.end();
+        return;
+    }
+    myHTTP.end();
+
+    XMLDocument xmlDocument;
+    if (xmlDocument.Parse(xmlDoc) != XML_SUCCESS) {
+        return;
+    };
+
+    XMLNode* root = xmlDocument.RootElement();
+
+    // 종목명
+    XMLElement* element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("itmsNm");
+    strcpy(myStockKR.name, element->GetText());
+
+    // 기준일자
+    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("basDt");
+    strcpy(myStockKR.date, element->GetText());
+    myStockKR.date[8] = '\0';
+
+    // 종가
+    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("clpr");
+    strcpy(myStockKR.closePrice, element->GetText());
+
+    // 대비
+    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("vs");
+    strcpy(myStockKR.change, element->GetText());
+
+    // 등락률
+    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("fltRt");
+    strcpy(myStockKR.percentChange, element->GetText());
+}
+
+void updateStockPriceUSPreviousDayCallback() {
+    WiFiClientSecure* client = new WiFiClientSecure;
+    HTTPClient myHTTP;
+
+    int httpCode;
+    char buffer[300];
+    snprintf(buffer, sizeof(buffer), "https://finnhub.io/api/v1/quote?symbol=%s&token=%s", myStockUS.name[myData.page_us], FINNHUB_STOCK_API_KEY);
+    client->setInsecure();
+    myHTTP.begin(*client, buffer);
+
+    httpCode = myHTTP.GET();
+
+    if (httpCode == HTTP_CODE_OK) 
+    {
+        deserializeJson(jsonDoc, myHTTP.getString());
+    } 
+    else 
+    {
+        myHTTP.end();
+        return;
+    }
+    myHTTP.end();
+
+    myStockUS.date = (int)(jsonDoc["t"]);
+    myStockUS.currentPrice = (float)(jsonDoc["c"]);
+    myStockUS.change = (float)(jsonDoc["d"]);
+    myStockUS.percentChange = (float)(jsonDoc["dp"]);
+}
+
 
 char *url_encode(const char *str) {
     const char *reserved = "=&+?/;#~%'\"<>{}[]|\\^";
@@ -214,12 +437,31 @@ void setup()
     Serial.println("-------------------------------------");
     Serial.println("[SETUP] End");
     Serial.println("-------------------------------------");
+
+    runner.init();
+    runner.addTask(updateDateTime);
+    runner.addTask(updateWeatherA);
+    runner.addTask(updateWeatherB);
+    runner.addTask(updateBusArrival);
+    runner.addTask(updateStockPriceKRPreviousDay);
+    runner.addTask(updateStockPriceUSPreviousDay);
+    delay(1000);
+    updateDateTime.enable();
+    updateWeatherA.enable();
+    updateWeatherB.enable();
+    updateBusArrival.enable();
+    updateStockPriceKRPreviousDay.enable();
+    updateStockPriceUSPreviousDay.enable();
 }
 
 uint32_t tick_cur = 0;
 uint32_t tick_old[10] = {0};
+GESTURE prev = NONE;
+
 void loop() 
 {
+    runner.execute();
+
     tick_cur = millis();
 
     // Keyboard Interrupt
@@ -237,10 +479,12 @@ void loop()
 
     if((tick_cur - tick_old[0]) > 500)
     {
-        if(touch.available())
+        if(!touch.available()) prev = NONE;
+        else if(prev != (GESTURE)touch.data.gestureID)
         {
             Serial.println("-------------------------------------");
             Serial.println("[TOUCH] Current Page");
+            prev = (GESTURE)touch.data.gestureID;
             switch (touch.data.gestureID) 
             {
                 case SWIPE_LEFT:
@@ -708,40 +952,9 @@ bool checkWiFiStatus() {
 
 bool getDateTime() 
 {
-    Serial.println("-------------------------------------");
-    Serial.println("[REQUEST] Date/Time");
-
     // 화면 전환
     img.pushImage(0, 0, 240, 240, DUCK_TIME_240);
     img.pushSprite(0, 0);
-
-    struct tm timeinfo;
-    if (!getLocalTime(&timeinfo)) {
-        Serial.println("[ERROR]");
-        Serial.println("-------------------------------------");
-        return false;
-    }
-
-    myTime.year = timeinfo.tm_year + 1900;
-    printf("[연도] %d\r\n", myTime.year);
-
-    myTime.mon = timeinfo.tm_mon + 1;
-    printf("[월] %d\r\n", myTime.mon);
-
-    myTime.mday = timeinfo.tm_mday;
-    printf("[일] %d\r\n", myTime.mday);
-
-    myTime.wday = timeinfo.tm_wday;
-    printf("[요일] %d\r\n", myTime.wday);
-
-    myTime.hour = timeinfo.tm_hour;
-    printf("[시] %d\r\n", myTime.hour);
-
-    myTime.min = timeinfo.tm_min;
-    printf("[분] %d\r\n", myTime.min);
-
-    myTime.sec = timeinfo.tm_sec;
-    printf("[초] %d\r\n", myTime.sec);
 
     // 월/일 시간:분
     tft.setCursor(80, 50);
@@ -764,52 +977,14 @@ bool getDateTime()
     if (myTime.min < 10) tft.print("0");
     tft.println(myTime.min);
 
-    Serial.println("-------------------------------------");
     return true;
 }
 
 bool getWeather(const char* city) 
 {
-    Serial.println("-------------------------------------");
-    Serial.println("[REQUEST] Weather");
-
     // 화면 전환
     img.pushImage(0, 0, 240, 240, DUCK_WEATHER_240);
     img.pushSprite(0, 0);
-
-    WiFiClient mySocket;
-    HTTPClient myHTTP;
-
-    int httpCode;
-    char buffer[256];
-    snprintf(buffer, sizeof(buffer), "http://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", city, OPENWEATHER_API_KEY);
-    myHTTP.begin(mySocket, buffer);
-    delay(500);
-
-    httpCode = myHTTP.GET();
-    printf("[HTTP CODE] %d \r\n", httpCode);
-
-    if (httpCode == HTTP_CODE_OK) 
-    {
-        Serial.println("[OK]");
-        deserializeJson(jsonDoc, myHTTP.getString());
-    } 
-    else 
-    {
-        Serial.println("[ERROR]");
-        myHTTP.end();
-        Serial.println("-------------------------------------");
-        return false;
-    }
-    myHTTP.end();
-
-    const char* weather = jsonDoc["weather"][0]["main"];
-    strcpy(myWeather.weather, weather);
-    myWeather.temp = (int)(jsonDoc["main"]["temp"]) - 273.0;
-
-    printf("[도시] %s \r\n", city);
-    printf("[날씨] %s \r\n", myWeather.weather);
-    printf("[기온] %d \r\n", myWeather.temp);
 
     // 도시
     tft.setCursor(60, 40);
@@ -830,7 +1005,6 @@ bool getWeather(const char* city)
     tft.print(myWeather.temp);
     tft.print("C");
 
-    Serial.println("-------------------------------------");
     return true;
 }
 
@@ -883,73 +1057,9 @@ bool getBusStationId()
 
 bool getBusArrival()  // getBusArrivalItem Operation
 {
-  Serial.println("-------------------------------------");
-  Serial.println("[REQUEST] BUS Arrival");
-  
   // 화면 전환
   img.pushImage(0, 0, 240, 240, DUCK_BUS_240);
   img.pushSprite(0, 0);
-  
-  WiFiClient mySocket;
-  HTTPClient myHTTP;
-  
-  int httpCode;
-  char buffer[300];
-  StaticJsonDocument<200> doc;
-  
-  
-  snprintf(buffer, sizeof(buffer), "http://3.14.181.15:8080/station/%s",myBus.stationId);
-  myHTTP.begin(mySocket, buffer);
-  delay(500);
-  
-  httpCode = myHTTP.GET();
-  printf("[HTTP CODE] %d \r\n", httpCode);
-  
-  if (httpCode == HTTP_CODE_OK) 
-  {
-    Serial.println("[OK]");
-    deserializeJson(jsonDoc2, myHTTP.getString());
-  } 
-  else 
-  {
-    Serial.println("[ERROR]");
-    myHTTP.end();
-    Serial.println("-------------------------------------");
-    return false;
-  }
-  myHTTP.end();
-  
-  // JSON 배열의 크기
-  int arraySize = jsonDoc2.size();
-  int flag = 0;
-  // 배열 요소를 반복하여 객체 정보 추출
-  for (int i = 0; i < arraySize; i++) {
-    JsonObject Bus = jsonDoc2[i];
-    const char* busName = Bus["name"];
-    if (strcmp(busName, myBus.routeName) == 0) {
-      // 버스 정보에 대한 반복문
-      auto bus = Bus["bus"];
-      if(bus.size() > 0 && bus[0].containsKey("남은정류소")) {
-        const char* remainingStops = bus[0]["남은정류소"];
-        const char* arrivalTime = bus[0]["도착예정시간"];
-        strcpy(myBus.remainingStops, remainingStops);
-        strcpy(myBus.arrivalTime, arrivalTime);
-      }
-      else {
-        strcpy(myBus.remainingStops, "-1");
-        strcpy(myBus.arrivalTime, "-1");
-      }
-      break;
-    }
-    else {
-      continue;
-    }
-  }
-  // 첫번째차량 위치정보
-  printf("[%s버스 남은 정류소] %s\r\n", myBus.routeName, myBus.remainingStops);
-  
-  // 첫번째차량 도착예상시간
-  printf("[%s버스 도착예상시간] %s\r\n", myBus.routeName, myBus.arrivalTime);
   
   // 정류소명
   String staStr(myBus.stationName);
@@ -967,77 +1077,14 @@ bool getBusArrival()  // getBusArrivalItem Operation
   String preStr(preBuf);
   AimHangul_v2(35, 100, preStr, TFT_WHITE);  // 중앙정렬
   
-  Serial.println("-------------------------------------");
   return true;
 }
 
 bool getStockPriceKRPreviousDay(const char* code)  // 한국주식 전날 시세
 {
-    Serial.println("-------------------------------------");
-    Serial.println("[REQUEST] KR stock");
-
     // 화면 전환
     img.pushImage(0, 0, 240, 240, DUCK_STOCK_KR_240);
     img.pushSprite(0, 0);
-
-    WiFiClient mySocket;
-    HTTPClient myHTTP;
-
-    int httpCode;
-    char buffer[300];
-
-    snprintf(buffer, sizeof(buffer), "http://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo?serviceKey=%s&numOfRows=1&pageNo=1&likeSrtnCd=%s", PUBLIC_DATA_API_KEY, code);
-    myHTTP.begin(mySocket, buffer);
-    delay(500);
-
-    httpCode = myHTTP.GET();
-    printf("[HTTP CODE] %d \r\n", httpCode);
-
-    if (httpCode == HTTP_CODE_OK) {
-        Serial.println("[OK]");
-        strcpy(xmlDoc, myHTTP.getString().c_str());
-    } else {
-        Serial.println("[ERROR]");
-        myHTTP.end();
-        Serial.println("-------------------------------------");
-        return false;
-    }
-    myHTTP.end();
-
-    XMLDocument xmlDocument;
-    if (xmlDocument.Parse(xmlDoc) != XML_SUCCESS) {
-        Serial.println("[PARSE ERROR]");
-        Serial.println("-------------------------------------");
-        return false;
-    };
-
-    XMLNode* root = xmlDocument.RootElement();
-
-    // 종목명
-    XMLElement* element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("itmsNm");
-    strcpy(myStockKR.name, element->GetText());
-    printf("[종목명] %s \r\n", myStockKR.name);
-
-    // 기준일자
-    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("basDt");
-    strcpy(myStockKR.date, element->GetText());
-    myStockKR.date[8] = '\0';
-    printf("[기준일자] %s \r\n", myStockKR.date);
-
-    // 종가
-    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("clpr");
-    strcpy(myStockKR.closePrice, element->GetText());
-    printf("[종가] %s \r\n", myStockKR.closePrice);
-
-    // 대비
-    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("vs");
-    strcpy(myStockKR.change, element->GetText());
-    printf("[대비] %s \r\n", myStockKR.change);
-
-    // 등락률
-    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("fltRt");
-    strcpy(myStockKR.percentChange, element->GetText());
-    printf("[등락률] %s \r\n", myStockKR.percentChange);
 
     // 날짜
     tft.setCursor(120-(12*4), 30); // 중앙정렬
@@ -1071,56 +1118,13 @@ bool getStockPriceKRPreviousDay(const char* code)  // 한국주식 전날 시세
     tft.setTextSize(2);
     tft.print(changeBuffer);
 
-    Serial.println("-------------------------------------");
     return true;
 }
 
 bool getStockPriceUSRealTime(const char* name)  // 미국주식 실시간 시세
 {
-    Serial.println("-------------------------------------");
-    Serial.println("[REQUEST] US Stock");
- 
-    // 화면 전환
     img.pushImage(0, 0, 240, 240, DUCK_STOCK_US_240);
     img.pushSprite(0, 0);
-
-    WiFiClientSecure* client = new WiFiClientSecure;
-    HTTPClient myHTTP;
-
-    int httpCode;
-    char buffer[300];
-    snprintf(buffer, sizeof(buffer), "https://finnhub.io/api/v1/quote?symbol=%s&token=%s", name, FINNHUB_STOCK_API_KEY);
-    client->setInsecure();
-    myHTTP.begin(*client, buffer);
-    delay(500);
-
-    httpCode = myHTTP.GET();
-    printf("[HTTP CODE] %d \r\n", httpCode);
-
-    if (httpCode == HTTP_CODE_OK) 
-    {
-        Serial.println("[OK]");
-        deserializeJson(jsonDoc, myHTTP.getString());
-    } 
-    else 
-    {
-        Serial.println("[ERROR]");
-        myHTTP.end();
-        Serial.println("-------------------------------------");
-        return false;
-    }
-    myHTTP.end();
-
-    myStockUS.date = (int)(jsonDoc["t"]);
-    myStockUS.currentPrice = (float)(jsonDoc["c"]);
-    myStockUS.change = (float)(jsonDoc["d"]);
-    myStockUS.percentChange = (float)(jsonDoc["dp"]);
-
-    printf("[종목명] %s \r\n", name);
-    printf("[기준일자] %d \r\n", myStockUS.date);
-    printf("[현재가] %.2f \r\n", myStockUS.currentPrice);
-    printf("[대비] %.2f \r\n", myStockUS.change);
-    printf("[등락률] %.2f \r\n", myStockUS.percentChange);
 
     time_t rawTime = myStockUS.date;
     struct tm ts;
@@ -1166,7 +1170,6 @@ bool getStockPriceUSRealTime(const char* name)  // 미국주식 실시간 시세
     tft.setTextSize(2);
     tft.print(changeBuf);
 
-    Serial.println("-------------------------------------");
     return true;
 }
 /***************************Function Definition************************************/
