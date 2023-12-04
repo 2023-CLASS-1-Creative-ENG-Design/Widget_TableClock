@@ -101,21 +101,21 @@ typedef struct
 {
   char code[3][9];         // 단축코드
 
-  char name[120];          // 종목명
-  char date[9];            // 기준일자
-  char closePrice[12];     // 종가
-  char change[10];         // 대비
-  char percentChange[11];  // 등락률
+  char name[3][120];          // 종목명
+  char date[3][9];            // 기준일자
+  char closePrice[3][12];     // 종가
+  char change[3][10];         // 대비
+  char percentChange[3][11];  // 등락률
 } STOCK_KR;
 
 typedef struct
 {
   char name[3][30];        // 종목명
 
-  int date;             // 기준일자
-  float currentPrice;   // 현재가
-  float change;         // 대비
-  float percentChange;  // 등락률
+  int date[3];             // 기준일자
+  float currentPrice[3];   // 현재가
+  float change[3];         // 대비
+  float percentChange[3];  // 등락률
 
 } STOCK_US;
 /*************************** [Structure Definition] ************************************/
@@ -162,8 +162,8 @@ bool getWeather(int);
 bool getBusStationId();
 bool getBusArrival();
 
-bool getStockPriceKRPreviousDay(const char* code);
-bool getStockPriceUSRealTime(const char* name);
+bool getStockPriceKRPreviousDay(int);
+bool getStockPriceUSRealTime(int);
 
 char *url_encode(const char *str);
 /*************************** [Function Declaration] ************************************/
@@ -172,15 +172,23 @@ void updateDateTimeCallback();
 void updateWeatherACallback();
 void updateWeatherBCallback();
 void updateBusArrivalCallback();
-void updateStockPriceKRPreviousDayCallback();
-void updateStockPriceUSPreviousDayCallback();
+void updateStockPriceKRPreviousDayACallback();
+void updateStockPriceKRPreviousDayBCallback();
+void updateStockPriceKRPreviousDayCCallback();
+void updateStockPriceUSPreviousDayACallback();
+void updateStockPriceUSPreviousDayBCallback();
+void updateStockPriceUSPreviousDayCCallback();
 
 Task updateDateTime(5000, TASK_FOREVER, updateDateTimeCallback);
 Task updateWeatherA(150000, TASK_FOREVER, updateWeatherACallback);
 Task updateWeatherB(200000, TASK_FOREVER, updateWeatherBCallback);
 Task updateBusArrival(50000, TASK_FOREVER, updateBusArrivalCallback);
-Task updateStockPriceKRPreviousDay(100000, 1, updateStockPriceKRPreviousDayCallback);
-Task updateStockPriceUSPreviousDay(100000, 1, updateStockPriceUSPreviousDayCallback);
+Task updateStockPriceKRPreviousDayA(95000, 1, updateStockPriceKRPreviousDayACallback);
+Task updateStockPriceKRPreviousDayB(100000, 1, updateStockPriceKRPreviousDayBCallback);
+Task updateStockPriceKRPreviousDayC(150000, 1, updateStockPriceKRPreviousDayCCallback);
+Task updateStockPriceUSPreviousDayA(110000, 1, updateStockPriceUSPreviousDayACallback);
+Task updateStockPriceUSPreviousDayB(115000, 1, updateStockPriceUSPreviousDayBCallback);
+Task updateStockPriceUSPreviousDayC(120000, 1, updateStockPriceUSPreviousDayCCallback);
 
 Scheduler runner;
 
@@ -200,14 +208,13 @@ void updateDateTimeCallback() {
     myTime.sec = timeinfo.tm_sec;
 }
 
-void updateWeatherACallback() {
+void updateWeatherCallback(int city) {
     WiFiClient mySocket;
     HTTPClient myHTTP;
-    char *city = myWeather.city[0];
 
     int httpCode;
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "http://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", city, OPENWEATHER_API_KEY);
+    snprintf(buffer, sizeof(buffer), "http://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", myWeather.city[city], OPENWEATHER_API_KEY);
     myHTTP.begin(mySocket, buffer);
 
     httpCode = myHTTP.GET();
@@ -224,35 +231,14 @@ void updateWeatherACallback() {
     myHTTP.end();
 
     const char* weather = jsonDoc["weather"][0]["main"];
-    strcpy(myWeather.weather[0], weather);
-    myWeather.temp[0] = (int)(jsonDoc["main"]["temp"]) - 273.0;
+    strcpy(myWeather.weather[city], weather);
+    myWeather.temp[city] = (int)(jsonDoc["main"]["temp"]) - 273.0;
+}
+void updateWeatherACallback() {
+    updateWeatherCallback(0);
 }
 void updateWeatherBCallback() {
-    WiFiClient mySocket;
-    HTTPClient myHTTP;
-    char *city = myWeather.city[1];
-
-    int httpCode;
-    char buffer[256];
-    snprintf(buffer, sizeof(buffer), "http://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", city, OPENWEATHER_API_KEY);
-    myHTTP.begin(mySocket, buffer);
-
-    httpCode = myHTTP.GET();
-
-    if (httpCode == HTTP_CODE_OK) 
-    {
-        deserializeJson(jsonDoc, myHTTP.getString());
-    } 
-    else 
-    {
-        myHTTP.end();
-        return;
-    }
-    myHTTP.end();
-
-    const char* weather = jsonDoc["weather"][0]["main"];
-    strcpy(myWeather.weather[1], weather);
-    myWeather.temp[1] = (int)(jsonDoc["main"]["temp"]) - 273.0;
+    updateWeatherCallback(1);
 }
 
 void updateBusArrivalCallback() {
@@ -307,14 +293,14 @@ void updateBusArrivalCallback() {
   }
 }
 
-void updateStockPriceKRPreviousDayCallback() {
+void updateStockPriceKRPreviousDayCallback(int stock) {
     WiFiClient mySocket;
     HTTPClient myHTTP;
 
     int httpCode;
     char buffer[300];
 
-    snprintf(buffer, sizeof(buffer), "http://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo?serviceKey=%s&numOfRows=1&pageNo=1&likeSrtnCd=%s", PUBLIC_DATA_API_KEY, myStockKR.code[myData.page_kr]);
+    snprintf(buffer, sizeof(buffer), "http://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo?serviceKey=%s&numOfRows=1&pageNo=1&likeSrtnCd=%s", PUBLIC_DATA_API_KEY, myStockKR.code[stock]);
     myHTTP.begin(mySocket, buffer);
 
     httpCode = myHTTP.GET();
@@ -337,33 +323,43 @@ void updateStockPriceKRPreviousDayCallback() {
 
     // 종목명
     XMLElement* element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("itmsNm");
-    strcpy(myStockKR.name, element->GetText());
+    strcpy(myStockKR.name[stock], element->GetText());
 
     // 기준일자
     element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("basDt");
-    strcpy(myStockKR.date, element->GetText());
-    myStockKR.date[8] = '\0';
+    strcpy(myStockKR.date[stock], element->GetText());
+    myStockKR.date[stock][8] = '\0';
 
     // 종가
     element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("clpr");
-    strcpy(myStockKR.closePrice, element->GetText());
+    strcpy(myStockKR.closePrice[stock], element->GetText());
 
     // 대비
     element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("vs");
-    strcpy(myStockKR.change, element->GetText());
+    strcpy(myStockKR.change[stock], element->GetText());
 
     // 등락률
     element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("fltRt");
-    strcpy(myStockKR.percentChange, element->GetText());
+    strcpy(myStockKR.percentChange[stock], element->GetText());
 }
 
-void updateStockPriceUSPreviousDayCallback() {
+void updateStockPriceKRPreviousDayACallback() {
+    updateStockPriceKRPreviousDayCallback(0);
+}
+void updateStockPriceKRPreviousDayBCallback() {
+    updateStockPriceKRPreviousDayCallback(1);
+}
+void updateStockPriceKRPreviousDayCCallback() {
+    updateStockPriceKRPreviousDayCallback(2);
+}
+
+void updateStockPriceUSPreviousDayCallback(int stock) {
     WiFiClientSecure* client = new WiFiClientSecure;
     HTTPClient myHTTP;
 
     int httpCode;
     char buffer[300];
-    snprintf(buffer, sizeof(buffer), "https://finnhub.io/api/v1/quote?symbol=%s&token=%s", myStockUS.name[myData.page_us], FINNHUB_STOCK_API_KEY);
+    snprintf(buffer, sizeof(buffer), "https://finnhub.io/api/v1/quote?symbol=%s&token=%s", myStockUS.name[stock], FINNHUB_STOCK_API_KEY);
     client->setInsecure();
     myHTTP.begin(*client, buffer);
 
@@ -380,10 +376,19 @@ void updateStockPriceUSPreviousDayCallback() {
     }
     myHTTP.end();
 
-    myStockUS.date = (int)(jsonDoc["t"]);
-    myStockUS.currentPrice = (float)(jsonDoc["c"]);
-    myStockUS.change = (float)(jsonDoc["d"]);
-    myStockUS.percentChange = (float)(jsonDoc["dp"]);
+    myStockUS.date[stock] = (int)(jsonDoc["t"]);
+    myStockUS.currentPrice[stock] = (float)(jsonDoc["c"]);
+    myStockUS.change[stock] = (float)(jsonDoc["d"]);
+    myStockUS.percentChange[stock] = (float)(jsonDoc["dp"]);
+}
+void updateStockPriceUSPreviousDayACallback() {
+    updateStockPriceUSPreviousDayCallback(0);
+}
+void updateStockPriceUSPreviousDayBCallback() {
+    updateStockPriceUSPreviousDayCallback(1);
+}
+void updateStockPriceUSPreviousDayCCallback() {
+    updateStockPriceUSPreviousDayCallback(2);
 }
 
 
@@ -443,15 +448,23 @@ void setup()
     runner.addTask(updateWeatherA);
     runner.addTask(updateWeatherB);
     runner.addTask(updateBusArrival);
-    runner.addTask(updateStockPriceKRPreviousDay);
-    runner.addTask(updateStockPriceUSPreviousDay);
+    runner.addTask(updateStockPriceKRPreviousDayA);
+    runner.addTask(updateStockPriceKRPreviousDayB);
+    runner.addTask(updateStockPriceKRPreviousDayC);
+    runner.addTask(updateStockPriceUSPreviousDayA);
+    runner.addTask(updateStockPriceUSPreviousDayB);
+    runner.addTask(updateStockPriceUSPreviousDayC);
     delay(1000);
     updateDateTime.enable();
     updateWeatherA.enable();
     updateWeatherB.enable();
     updateBusArrival.enable();
-    updateStockPriceKRPreviousDay.enable();
-    updateStockPriceUSPreviousDay.enable();
+    updateStockPriceKRPreviousDayA.enable();
+    updateStockPriceKRPreviousDayB.enable();
+    updateStockPriceKRPreviousDayC.enable();
+    updateStockPriceUSPreviousDayA.enable();
+    updateStockPriceUSPreviousDayB.enable();
+    updateStockPriceUSPreviousDayC.enable();
 }
 
 uint32_t tick_cur = 0;
@@ -551,11 +564,11 @@ void loop()
                     tick_old[3] = tick_cur;
                 break;
                 case 3:
-                    while(!getStockPriceKRPreviousDay(myStockKR.code[myData.page_kr])) delay(1000);
+                    while(!getStockPriceKRPreviousDay(myData.page_kr)) delay(1000);
                     tick_old[4] = tick_cur;
                 break;
                 case 4:
-                    while(!getStockPriceUSRealTime(myStockUS.name[myData.page_us])) delay(1000);
+                    while(!getStockPriceUSRealTime(myData.page_us)) delay(1000);
                     tick_old[5] = tick_cur;
                 break;
                 default:
@@ -588,7 +601,7 @@ ignore:
 
     if(((tick_cur-tick_old[4]) > (1000*60*60)) && (myData.page == 3))
     {
-        while(!getStockPriceKRPreviousDay(myStockKR.code[myData.page_kr])) delay(1000);
+        while(!getStockPriceKRPreviousDay(myData.page_kr)) delay(1000);
 
         if(!checkWiFiStatus())
         {
@@ -600,7 +613,7 @@ ignore:
 
     if(((tick_cur-tick_old[5]) > 15000) && (myData.page == 4))
     {
-        while(!getStockPriceUSRealTime(myStockUS.name[myData.page_us])) delay(1000);
+        while(!getStockPriceUSRealTime(myData.page_us)) delay(1000);
         tick_old[5] = tick_cur;
     }
 }
@@ -1080,7 +1093,7 @@ bool getBusArrival()  // getBusArrivalItem Operation
   return true;
 }
 
-bool getStockPriceKRPreviousDay(const char* code)  // 한국주식 전날 시세
+bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
 {
     // 화면 전환
     img.pushImage(0, 0, 240, 240, DUCK_STOCK_KR_240);
@@ -1090,30 +1103,30 @@ bool getStockPriceKRPreviousDay(const char* code)  // 한국주식 전날 시세
     tft.setCursor(120-(12*4), 30); // 중앙정렬
     tft.setTextColor(TFT_WHITE);
     tft.setTextSize(2);
-    tft.printf("%s", myStockKR.date);
+    tft.printf("%s", myStockKR.date[stock]);
 
     // 종목
-    String str(myStockKR.name);
-    int nameLen = strlen(myStockKR.name) / 3;
+    String str(myStockKR.name[stock]);
+    int nameLen = strlen(myStockKR.name[stock]) / 3;
     // printf("name len %d\r\n", nameLen);
     AimHangul_v2(120 - (float)(nameLen/2) * 16, 50, str, TFT_WHITE);  // 중앙정렬
 
     // 종가
-    int closePriceLen = strlen(myStockKR.closePrice);
+    int closePriceLen = strlen(myStockKR.closePrice[stock]);
     // printf("closePriceLen %d\r\n", closePriceLen);
     tft.setCursor(120 - (float)(closePriceLen/2) * 20, 50 + 36);  // 중앙정렬
     tft.setTextColor(TFT_WHITE);
     tft.setTextSize(3);
-    tft.print(myStockKR.closePrice);
+    tft.print(myStockKR.closePrice[stock]);
     // printf("%d\r\n", tft.getCursorX());
 
     // 대비, 등락률
     char changeBuffer[50];
-    snprintf(changeBuffer, sizeof(changeBuffer), "%s %s%%", myStockKR.change, myStockKR.percentChange);
+    snprintf(changeBuffer, sizeof(changeBuffer), "%s %s%%", myStockKR.change[stock], myStockKR.percentChange[stock]);
     int changeBufferLen = strlen(changeBuffer);
     // printf("changeBufferLen %d\r\n", changeBufferLen);
     tft.setCursor(120 - (float)(changeBufferLen/2) * 12, 50 + 36 + 30);  // 중앙정렬
-    if (myStockKR.change[0] == '-') tft.setTextColor(TFT_BLUE, TFT_WHITE, 1);
+    if (myStockKR.change[stock][0] == '-') tft.setTextColor(TFT_BLUE, TFT_WHITE, 1);
     else tft.setTextColor(TFT_RED, TFT_WHITE, 1);
     tft.setTextSize(2);
     tft.print(changeBuffer);
@@ -1121,12 +1134,12 @@ bool getStockPriceKRPreviousDay(const char* code)  // 한국주식 전날 시세
     return true;
 }
 
-bool getStockPriceUSRealTime(const char* name)  // 미국주식 실시간 시세
+bool getStockPriceUSRealTime(int stock)  // 미국주식 실시간 시세
 {
     img.pushImage(0, 0, 240, 240, DUCK_STOCK_US_240);
     img.pushSprite(0, 0);
 
-    time_t rawTime = myStockUS.date;
+    time_t rawTime = myStockUS.date[stock];
     struct tm ts;
     ts = *localtime(&rawTime);
 
@@ -1145,27 +1158,27 @@ bool getStockPriceUSRealTime(const char* name)  // 미국주식 실시간 시세
     tft.print(ts.tm_sec);
 
     // 종목명
-    int nameLen = strlen(name);
+    int nameLen = strlen(myStockUS.name[stock]);
     tft.setCursor(120 - (float)(nameLen/2) * 18, 55);  // 중앙정렬
     tft.setTextColor(TFT_WHITE);
     tft.setTextSize(3);
-    tft.print(name);
+    tft.print(myStockUS.name[stock]);
 
     // 현재가
     char curPriceBuf[10];
-    snprintf(curPriceBuf, sizeof(curPriceBuf), "%.2f", myStockUS.currentPrice);
+    snprintf(curPriceBuf, sizeof(curPriceBuf), "%.2f", myStockUS.currentPrice[stock]);
     int curPriceLen = strlen(curPriceBuf);
     tft.setCursor(120 - (float)(curPriceLen/2) * 18, 50 + 36);  // 중앙정렬
     tft.setTextColor(TFT_WHITE);
     tft.setTextSize(3);
-    tft.print(myStockUS.currentPrice);
+    tft.print(myStockUS.currentPrice[stock]);
 
     // 대비, 등락률
     char changeBuf[50];
-    snprintf(changeBuf, sizeof(changeBuf), "%.2f %.2f%%", myStockUS.change, myStockUS.percentChange);
+    snprintf(changeBuf, sizeof(changeBuf), "%.2f %.2f%%", myStockUS.change[stock], myStockUS.percentChange[stock]);
     int changeBufLen = strlen(changeBuf);
     tft.setCursor(120 - (float)(changeBufLen/2) * 12, 50 + 36 + 30);  // 중앙정렬
-    if (myStockUS.change >= 0) tft.setTextColor(TFT_RED, TFT_WHITE, 1);
+    if (myStockUS.change[stock] >= 0) tft.setTextColor(TFT_RED, TFT_WHITE, 1);
     else tft.setTextColor(TFT_BLUE, TFT_WHITE, 1);
     tft.setTextSize(2);
     tft.print(changeBuf);
