@@ -4,7 +4,6 @@
 #include <time.h>
 #include "EEPROM.h"
 #include <WiFi.h>
-#include <WebServer.h>
 #include <WiFiClient.h>
 #include <HTTPClient.h>
 
@@ -419,6 +418,7 @@ const char* ssid = "ESP32_test";
 const char* password = "123456789";
 
 WiFiServer server(80);
+WiFiClient client;
 
 String header;
 
@@ -457,7 +457,17 @@ void handleRoot() {
 	html += "<input type='submit' value='Submit'>";
 	html += "</form></body></html>";
 	
-	server.send(200, "text/html", html); // 클라이언트에 HTML 응답 전송
+	client = server.available(); // 클라이언트 연결 수락
+	if (client) {
+		if (client.connected()) {
+			client.println("HTTP/1.1 200 OK");
+			client.println("Content-type:text/html");
+			client.println();
+			client.println(html); // 클라이언트에 HTML 응답 전송
+			delay(1);
+			client.stop(); // 클라이언트 연결 종료
+		}
+	}
 }
 
 
@@ -525,8 +535,15 @@ void handleData() {
 		Serial.println(wifiName);
 		Serial.print("WiFi Password: ");
 		Serial.println(wifiPassword);
+		
+		client.println("HTTP/1.1 200 OK");
+		client.println("Content-type:text/plain");
+		client.println();
+		client.println("Data received!"); // 클라이언트에게 응답 전송
+		delay(1);
+		client.stop();
 	}
-	server.send(200, "text/plain", "Data received!");
+			
 }
 
 void setInfo() {
