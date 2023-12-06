@@ -578,7 +578,7 @@ void setup()
 	img.createSprite(240, 240);
 	
 	
-	Serial.print("Setting AP...")
+	Serial.print("Setting AP...");
 	WiFi.softAP(ssid, password);
 	IPAddress IP = WiFi.softAPIP();
 	Serial.print("AP IP address: ");
@@ -592,7 +592,7 @@ void setup()
 	tft.setTextSize(3);
 	tft.print("Setting...");
 	
-	setInfo()
+	setInfo();
 	server.begin();
 	
 	auto foo = url_encode(myBus.stationName);
