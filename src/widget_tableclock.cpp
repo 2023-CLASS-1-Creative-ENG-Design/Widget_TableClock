@@ -4,6 +4,7 @@
 #include <time.h>
 #include "EEPROM.h"
 #include <WiFi.h>
+#include <WebServer.h>
 #include <WiFiClient.h>
 #include <HTTPClient.h>
 
@@ -149,6 +150,9 @@ DynamicJsonDocument jsonDoc2(2048);
 /*************************** [Variable Declaration] ************************************/
 
 /*************************** [Function Declaration] ************************************/
+void handleRoot();
+void handleData();
+
 void clearStructData();
 void getUserData(bool overwrite);
 void parseUserData();
@@ -411,11 +415,64 @@ char *url_encode(const char *str) {
     return encoded;
 }
 
+const char* ssid = "ESP32_test";
+const char* password = "123456789";
+
+WiFiServer server(80);
+
+String header;
+
+void handleRoot() {
+  String html = "<!DOCTYPE html><html><head><title>Data Input</title></head><body>";
+  html += "<h2>Enter Bus Number, Bus Stop, Korean Stock, WiFi Name, and WiFi Password</h2>";
+  html += "<form action='/submitData' method='post' id='dataForm'>";
+  html += "<label for='busNumber'>Bus Number:</label>";
+  html += "<input type='text' id='busNumber' name='busNumber'><br><br>";
+  html += "<label for='busStop'>Bus Stop:</label>";
+  html += "<input type='text' id='busStop' name='busStop'><br><br>";
+  html += "<label for='koreanStock'>Korean Stock:</label>";
+  html += "<input type='text' id='koreanStock' name='koreanStock'><br><br>";
+  html += "<label for='wifiName'>WiFi Name:</label>";
+  html += "<input type='text' id='wifiName' name='wifiName'><br><br>";
+  html += "<label for='wifiPassword'>WiFi Password:</label>";
+  html += "<input type='text' id='wifiPassword' name='wifiPassword'><br><br>";
+  html += "<input type='submit' value='Submit'>";
+  html += "</form></body></html>";
+  
+  
+  server.send(200, "text/html", html); // 클라이언트에 HTML 응답 전송
+}
+
+void handleData() {
+  if (server.hasArg("busNumber") && server.hasArg("busStop") && server.hasArg("koreanStock") && server.hasArg("wifiName") && server.hasArg("wifiPassword")) {
+    String busNumber = server.arg("busNumber");
+    String busStop = server.arg("busStop");
+    String koreanStock = server.arg("koreanStock");
+    String wifiName = server.arg("wifiName");
+    String wifiPassword = server.arg("wifiPassword");
+    
+    Serial.print("Bus Number: ");
+    Serial.println(busNumber);
+    Serial.print("Bus Stop: ");
+    Serial.println(busStop);
+    Serial.print("Korean Stock: ");
+    Serial.println(koreanStock);
+    Serial.print("WiFi Name: ");
+    Serial.println(wifiName);
+    Serial.print("WiFi Password: ");
+    Serial.println(wifiPassword);
+    
+    // 저장된 WiFi 정보를 업데이트
+    storeWiFiCredentials(wifiName.c_str(), wifiPassword.c_str());
+  }
+  server.send(200, "text/plain", "Data received!");
+}
+
 void setup() 
 {
     // put your setup code here, to run once:
     Serial.begin(115200);
-
+  
     Serial.println();
     Serial.println();
     Serial.println("-------------------------------------");
@@ -427,7 +484,7 @@ void setup()
     Serial.println("-------------------------------------");
     Serial.println("[SETUP] Start]");
     Serial.println("-------------------------------------");
-
+  
     touch.begin();
 
     tft.init();
@@ -436,7 +493,17 @@ void setup()
     img.setSwapBytes(true);
     tft.fillScreen(TFT_WHITE);
     img.createSprite(240, 240);
-
+    
+    
+    Serial.print("Setting AP...")
+    WiFi.softAP(ssid, password);
+    IPAddress IP = WiFi.softAPIP();
+    Serial.print("AP IP address: ");
+    Serial.println(IP);
+    
+    server.on("/", HTTP_GET, handleRoot);
+    server.on("/submitData", HTTP_POST, handleData);
+    server.begin();
     getUserData(0);
 
     Serial.println("-------------------------------------");
@@ -467,12 +534,14 @@ void setup()
     updateStockPriceUSPreviousDayC.enable();
 }
 
+
+
 uint32_t tick_cur = 0;
 uint32_t tick_old[10] = {0};
 GESTURE prev = NONE;
 
 void loop() 
-{
+{   
     runner.execute();
 
     tick_cur = millis();
