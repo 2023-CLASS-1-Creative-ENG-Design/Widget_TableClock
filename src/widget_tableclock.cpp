@@ -300,19 +300,47 @@ void updateStockPriceKRPreviousDayCallback(int stock) {
 
     int httpCode;
     char buffer[300];
+    //지금은 prevPrice에 실시간 값이 들어있음 -> 전날 종가를 받아와서 prevPrice 배열에 저장해주어야 함
+    //update 는 값을 가져와서 구조체에 넣는 함수, getㅇ은 저장된 값을 화면에 보여주는 것
+    //update로 값을 실시간으로 계속 가져오고, get 함수로 해당값을 보여주는것임
     strcpy(myStockKR.prevPrice[stock], myStockKR.closePrice[stock]);//전날 종가를 현재 시세가로 바꾸기 전에 기존 값을 저장함
 
-    char currentPrice[12] = "";//현재 시세가를 담을 변수
+    char currentPrice[20] = "";//현재 시세가를 담을 변수
 
-    snprintf(buffer, sizeof(buffer), "http://152.69.233.120:5000/%s", myStockKR.name[stock]);
+    snprintf(buffer, sizeof(buffer), "http://152.69.233.120:5000/%s", myStockKR.code[stock]);
     myHTTP.begin(mySocket, buffer);
 
     httpCode = myHTTP.GET();
 
     if (httpCode == HTTP_CODE_OK) {
         strcpy(currentPrice, myHTTP.getString().c_str());
-        Serial.println(currentPrice);
-        strcpy(myStockKR.closePrice[stock], currentPrice);//현재가를 구조체 객체에 저장함
+        //----------------------------------------------
+        // 두 개의 부분을 저장할 배열
+        char firstPart[10];  // 예시로 크기를 10으로 설정
+        char secondPart[10];
+
+        // strtok 함수를 사용하여 문자열을 공백을 기준으로 나누기
+        char *token = strtok(currentPrice, " ");
+    
+        if (token != NULL) {
+            strncpy(firstPart, token, sizeof(firstPart) - 1);
+            firstPart[sizeof(firstPart) - 1] = '\0';
+            token = strtok(NULL, " ");
+        }
+
+        if (token != NULL) {
+            strncpy(secondPart, token, sizeof(secondPart) - 1);
+            secondPart[sizeof(secondPart) - 1] = '\0';
+        }
+
+        // 결과 출력
+        printf("First part: %s\n", firstPart);
+        printf("Second part: %s\n", secondPart);
+    //---------------------------------------------------
+        // Serial.println("오라클 클라우드에서 받아온 결과 문자열");
+        // Serial.println(currentPrice);
+        strcpy(myStockKR.closePrice[stock], firstPart);//현재가를 구조체 객체에 저장함
+        strcpy(myStockKR.prevPrice[stock], secondPart);//전날 종가를 현재 시세가로 바꾸기 전에 기존 값을 저장함
     } else {
         myHTTP.end();
         return;
@@ -327,11 +355,14 @@ void updateStockPriceKRPreviousDayCallback(int stock) {
     sprintf(myStockKR.change[stock], "%d", changeValue);
     // *************등락율 구해서 문자열로 변환*************
     if(atoi(myStockKR.prevPrice[stock]) != 0){
-        changePercent = ( changeValue / atoi(myStockKR.prevPrice[stock]))* 100.0;
+        Serial.println(changeValue);
+        Serial.println(atof(myStockKR.prevPrice[stock]));
+        changePercent = ( changeValue / atof(myStockKR.prevPrice[stock]))* 100.0;
     } else{
         changePercent = 0.0;
     }
-    sprintf(myStockKR.percentChange[stock], "%lf", changePercent);
+    Serial.println(changePercent, 4);
+    sprintf(myStockKR.percentChange[stock], "%.2lf", changePercent);
 }
 
 void updateStockPriceKRPreviousDayACallback() {
@@ -1088,6 +1119,9 @@ bool getBusArrival()  // getBusArrivalItem Operation
 
 bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
 {
+    img.pushImage(0, 0, 240, 240, DUCK_BUS_240);
+    img.pushSprite(0, 0);
+
     // 날짜
     tft.setCursor(120-(12*4), 30); // 중앙정렬
     tft.setTextColor(TFT_WHITE);
