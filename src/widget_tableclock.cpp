@@ -43,7 +43,7 @@ TFT_eSPI tft = TFT_eSPI();
 #define PUBLIC_DATA_API_KEY "HHec4G%2FFjjMjQIfzZa3yfZuItK93BQh%2BC%2FwkITl%2FCu8X3h%2BAjlF74glKicSnEN%2BVeZEOvstt07Zz%2Be%2BvmAlFVQ%3D%3D"
 #define OPENWEATHER_API_KEY "8d27c680ce67b6ffebcf09d005cdd444"
 #define FINNHUB_STOCK_API_KEY "ci77auhr01quivoc1e0gci77auhr01quivoc1e10"
-/*************************** [API KEY Definition] ************************************/
+#define BUS_API_SERVER "3.14.181.15"
 
 /*************************** [Structure Definition] ************************************/
 typedef enum {
@@ -249,7 +249,7 @@ void updateBusArrivalCallback() {
   char buffer[300];
   StaticJsonDocument<200> doc;
   
-  snprintf(buffer, sizeof(buffer), "http://3.14.181.15:8080/station/%s",myBus.stationId);
+  snprintf(buffer, sizeof(buffer), "http://%s:8080/station/%s",BUS_API_SERVER,myBus.stationId);
   myHTTP.begin(mySocket, buffer);
   
   httpCode = myHTTP.GET();
@@ -1032,7 +1032,7 @@ bool getBusStationId()
   int httpCode;
   char buffer[300];
   
-  snprintf(buffer, sizeof(buffer), "http://3.14.181.15:8080/station/search/%s", myBus.stationEncoded);
+  snprintf(buffer, sizeof(buffer), "http://%s:8080/station/search/%s", BUS_API_SERVER,myBus.stationEncoded);
   myHTTP.begin(mySocket, buffer);
   delay(500);
   
