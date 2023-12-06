@@ -103,6 +103,7 @@ typedef struct
 
   char name[3][120];          // 종목명
   char date[3][9];            // 기준일자
+  char prevPrice[3][12];
   char closePrice[3][12];     // 종가
   char change[3][10];         // 대비
   char percentChange[3][11];  // 등락률
@@ -299,48 +300,38 @@ void updateStockPriceKRPreviousDayCallback(int stock) {
 
     int httpCode;
     char buffer[300];
+    strcpy(myStockKR.prevPrice[stock], myStockKR.closePrice[stock]);//전날 종가를 현재 시세가로 바꾸기 전에 기존 값을 저장함
 
-    snprintf(buffer, sizeof(buffer), "http://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo?serviceKey=%s&numOfRows=1&pageNo=1&likeSrtnCd=%s", PUBLIC_DATA_API_KEY, myStockKR.code[stock]);
+    char currentPrice[12] = "";//현재 시세가를 담을 변수
+
+    snprintf(buffer, sizeof(buffer), "http://152.69.233.120:5000/%s", myStockKR.name[stock]);
     myHTTP.begin(mySocket, buffer);
 
     httpCode = myHTTP.GET();
 
     if (httpCode == HTTP_CODE_OK) {
-        Serial.println("[OK]");
-        strcpy(xmlDoc, myHTTP.getString().c_str());
+        strcpy(currentPrice, myHTTP.getString().c_str());
+        Serial.println(currentPrice);
+        strcpy(myStockKR.closePrice[stock], currentPrice);//현재가를 구조체 객체에 저장함
     } else {
         myHTTP.end();
         return;
     }
     myHTTP.end();
 
-    XMLDocument xmlDocument;
-    if (xmlDocument.Parse(xmlDoc) != XML_SUCCESS) {
-        return;
-    };
-
-    XMLNode* root = xmlDocument.RootElement();
-
-    // 종목명
-    XMLElement* element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("itmsNm");
-    strcpy(myStockKR.name[stock], element->GetText());
-
-    // 기준일자
-    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("basDt");
-    strcpy(myStockKR.date[stock], element->GetText());
-    myStockKR.date[stock][8] = '\0';
-
-    // 종가
-    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("clpr");
-    strcpy(myStockKR.closePrice[stock], element->GetText());
-
-    // 대비
-    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("vs");
-    strcpy(myStockKR.change[stock], element->GetText());
-
-    // 등락률
-    element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("fltRt");
-    strcpy(myStockKR.percentChange[stock], element->GetText());
+    // 대비 & 등락률
+    char changeBuffer[50];
+    double changePercent;
+    // *************대비 증/감 한 값 구해서 문자열로 변환*************
+    int changeValue = atoi(currentPrice) - atoi(myStockKR.prevPrice[stock]);
+    sprintf(myStockKR.change[stock], "%d", changeValue);
+    // *************등락율 구해서 문자열로 변환*************
+    if(atoi(myStockKR.prevPrice[stock]) != 0){
+        changePercent = ( changeValue / atoi(myStockKR.prevPrice[stock]))* 100.0;
+    } else{
+        changePercent = 0.0;
+    }
+    sprintf(myStockKR.percentChange[stock], "%lf", changePercent);
 }
 
 void updateStockPriceKRPreviousDayACallback() {
@@ -1097,10 +1088,6 @@ bool getBusArrival()  // getBusArrivalItem Operation
 
 bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
 {
-    // 화면 전환
-    img.pushImage(0, 0, 240, 240, DUCK_STOCK_KR_240);
-    img.pushSprite(0, 0);
-
     // 날짜
     tft.setCursor(120-(12*4), 30); // 중앙정렬
     tft.setTextColor(TFT_WHITE);
@@ -1113,7 +1100,7 @@ bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
     // printf("name len %d\r\n", nameLen);
     AimHangul_v2(120 - (float)(nameLen/2) * 16, 50, str, TFT_WHITE);  // 중앙정렬
 
-    // 종가
+    // 현재가(closePrice is currentPrice in this code)
     int closePriceLen = strlen(myStockKR.closePrice[stock]);
     // printf("closePriceLen %d\r\n", closePriceLen);
     tft.setCursor(120 - (float)(closePriceLen/2) * 20, 50 + 36);  // 중앙정렬
@@ -1122,8 +1109,8 @@ bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
     tft.print(myStockKR.closePrice[stock]);
     // printf("%d\r\n", tft.getCursorX());
 
-    // 대비, 등락률
     char changeBuffer[50];
+    
     snprintf(changeBuffer, sizeof(changeBuffer), "%s %s%%", myStockKR.change[stock], myStockKR.percentChange[stock]);
     int changeBufferLen = strlen(changeBuffer);
     // printf("changeBufferLen %d\r\n", changeBufferLen);
@@ -1133,6 +1120,8 @@ bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
     tft.setTextSize(2);
     tft.print(changeBuffer);
 
+    Serial.println("-------------------------------------");
+  //----------------------------------------------------------------------//
     return true;
 }
 
