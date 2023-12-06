@@ -1129,7 +1129,11 @@ bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
     tft.printf("%s", myStockKR.date[stock]);
 
     // 종목
+    if(stock == 0){strcpy(myStockKR.name[stock],"LG생활건강");}
+    else if(stock == 1){strcpy(myStockKR.name[stock],"삼성전자");}
+    else if(stock == 2){strcpy(myStockKR.name[stock],"아모레퍼시픽");}
     String str(myStockKR.name[stock]);
+
     int nameLen = strlen(myStockKR.name[stock]) / 3;
     // printf("name len %d\r\n", nameLen);
     AimHangul_v2(120 - (float)(nameLen/2) * 16, 50, str, TFT_WHITE);  // 중앙정렬
