@@ -684,14 +684,16 @@ reset:
 
     while (1)  // wait user data
     {
-        while (Serial.available()) 
-        {
-            input[index] = Serial.read();
-            if (input[index] == '[') err_chk_1++;
-            if (input[index] == ']') err_chk_2++;
+        while(err_chk_2 < 6) {
+            if (Serial.available()) 
+            {
+                input[index] = Serial.read();
+                if (input[index] == '[') err_chk_1++;
+                if (input[index] == ']') err_chk_2++;
 
-            index++;
-            input_flag = true;
+                index++;
+                input_flag = true;
+            }
         }
 
         if (input_flag) 
