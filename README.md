@@ -15,8 +15,7 @@ Widget_TableClock입니다.
 ## 2. Visual Studio Code
 
 Visual Studio Code를 이용해 PlatformIO IDE extension을 다운로드합니다.
-
-[![initial]([/Users/leechangmin/Desktop/스크린샷 2023-12-06 오전 10.00.47.png](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/123c329a-da7f-4555-b049-addedc879bc1))](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/daf36bb2-c3e6-4ddd-9a14-d5b380181ff2)
+<img width="687" alt="platform" src="https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/daf36bb2-c3e6-4ddd-9a14-d5b380181ff2">
 
 다운로드가 완료되면 좌측 사이드바에 새로 생긴 PlatformIO를 클릭하여 PROJECT TASKS에서 Pick a folder를 클릭합니다.
 
