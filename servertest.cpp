@@ -425,11 +425,11 @@ String header;
 
 void sendHTML(WiFiClient client) {
 	client.println("HTTP/1.1 200 OK");
-	client.println("Content-type:text/html");
+	client.println("Content-type:text/html; charset=UTF-8");
 	client.println("Connection: close");
 	client.println();
 	
-	client.println("<!DOCTYPE html>\n<html>\n<head>\n	<title>Data Input</title>\n	<style>\n		body {\n			font-family: Arial, sans-serif;\n			margin: 50px;\n		}\n		h2 {\n			color: #333;\n		}\n		label {\n			display: block;\n			margin-top: 10px;\n		}\n		input[type='text'] {\n			width: 200px;\n			padding: 5px;\n			margin-top: 5px;\n		}\n		input[type='submit'] {\n			width: 100px;\n			padding: 8px;\n			margin-top: 20px;\n			background-color: #4CAF50;\n			color: white;\n			border: none;\n			cursor: pointer;\n		}\n	</style>\n</head>\n<body>\n	<h2>Enter Bus Number, Bus Stop, Korean Stock, US Stock, WiFi Name, WiFi Password, City 1, and City 2</h2>\n	<form action='/submitData' method='post' id='dataForm'>\n		<label for='busNumber'>Bus Number:</label>\n		<input type='text' id='busNumber' name='busNumber'><br>\n		<label for='busStop'>Bus Stop:</label>\n		<input type='text' id='busStop' name='busStop'><br>\n		<label for='koreanStock1'>Korean Stock 1:</label>\n		<input type='text' id='koreanStock1' name='koreanStock1'><br>\n		<label for='koreanStock2'>Korean Stock 2:</label>\n		<input type='text' id='koreanStock2' name='koreanStock2'><br>\n		<label for='koreanStock3'>Korean Stock 3:</label>\n		<input type='text' id='koreanStock3' name='koreanStock3'><br>\n		<label for='usStock1'>US Stock 1:</label>\n		<input type='text' id='usStock1' name='usStock1'><br>\n		<label for='usStock2'>US Stock 2:</label>\n		<input type='text' id='usStock2' name='usStock2'><br>\n		<label for='usStock3'>US Stock 3:</label>\n		<input type='text' id='usStock3' name='usStock3'><br>\n		<label for='wifiName'>WiFi Name:</label>\n		<input type='text' id='wifiName' name='wifiName'><br>\n		<label for='wifiPassword'>WiFi Password:</label>\n		<input type='text' id='wifiPassword' name='wifiPassword'><br>\n		<label for='city1'>City 1:</label>\n		<input type='text' id='city1' name='city1'><br>\n		<label for='city2'>City 2:</label>\n		<input type='text' id='city2' name='city2'><br>\n		<input type='submit' value='Submit'>\n	</form>\n</body>\n</html>");
+	client.println("<!DOCTYPE html>\n<html>\n<head>\n	<title>Data Input</title>\n	<style>\n		body {\n			font-family: Arial, sans-serif;\n			margin: 50px;\n		}\n		h2 {\n			color: #333;\n		}\n		label {\n			display: block;\n			margin-top: 10px;\n		}\n		input[type='text'] {\n			width: 200px;\n			padding: 5px;\n			margin-top: 5px;\n		}\n		input[type='submit'] {\n			width: 100px;\n			padding: 8px;\n			margin-top: 20px;\n			background-color: #4CAF50;\n			color: white;\n			border: none;\n			cursor: pointer;\n		}\n	</style>\n</head>\n<body>\n	<h2>Enter Bus Number, Bus Stop, Korean Stock, US Stock, WiFi Name, WiFi Password, City 1, and City 2</h2>\n	<form action='/submitData' method='post' id='dataForm'>\n		<label for='busNumber'>Bus Number:</label>\n		<input type='text' id='busNumber' name='busNumber'><br>\n		<label for='busStop'>Bus Stop:</label>\n		<input type='text' id='busStop' name='busStop'><br>\n		<label for='koreanStock1'>Korean Stock 1:</label>\n		<input type='text' id='koreanStock1' name='koreanStock1'><br>\n		<label for='koreanStock2'>Korean Stock 2:</label>\n		<input type='text' id='koreanStock2' name='koreanStock2'><br>\n		<label for='koreanStock3'>Korean Stock 3:</label>\n		<input type='text' id='koreanStock3' name='koreanStock3'><br>\n		<label for='usStock1'>US Stock 1:</label>\n		<input type='text' id='usStock1' name='usStock1'><br>\n		<label for='usStock2'>US Stock 2:</label>\n		<input type='text' id='usStock2' name='usStock2'><br>\n		<label for='usStock3'>US Stock 3:</label>\n		<input type='text' id='usStock3' name='usStock3'><br>\n		<label for='wifiName'>WiFi Name:</label>\n		<input type='text' id='wifiName' name='wifiName'><br>\n		<label for='wifiPassword'>WiFi Password:</label>\n		<input type='text' id='wifiPassword' name='wifiPassword'><br>\n		<label for='city1'>City 1:</label>\n		<input type='text' id='city1' name='city1'><br>\n		<label for='city2'>City 2:</label>\n		<input type='text' id='city2' name='city2'><input type='text' id='eof' name='eof' style='display:none;'><br>\n		<input type='submit' value='Submit'>\n	</form>\n</body>\n</html>");
 }
 
 String decodeURIComponent(String s) {
@@ -543,46 +543,39 @@ void parseUserData(String data) {
 }
 
 int getClient() {
-	
-	WiFiClient client = server.available();
-	if (client) {
-		Serial.println("New Client.");
-		
-		String currentLine = "";
-		while (client.connected()) {
-			if (client.available()) {
-				char c = client.read();
-				Serial.write(c);
-				currentLine += c;
-				
-				// 클라이언트의 요청이 끝나면 HTML 파일을 보냄
-				if (c == '\n') {
-					if (currentLine.indexOf("GET /") >= 0) {
-						sendHTML(client);
-						break;
-					}
-					currentLine = "";
-				} else if (currentLine.endsWith("\n\n")) {
-					// 데이터를 받아서 처리
-					if (currentLine.indexOf("POST /submitData") >= 0) {
-						while (client.available()) {
-							String postData = client.readStringUntil('\r');
-							Serial.println(postData); // 받은 데이터를 시리얼 모니터에 출력
-							// 데이터 파싱
-							parseUserData(postData);
-						}
-					}
-					break;
-				}
-			}
-		}
-		client.stop();
-		Serial.println("Client disconnected.");
-		return 1
-	}
-	else return -1
 
-	
+    WiFiClient client;
+
+    while(!(client = server.available())) {}
+    
+    Serial.println("New Client.");
+    
+    String currentLine = "";
+    while (client.connected()) {
+        if (client.available()) {
+            char c = client.read();
+            Serial.write(c);
+            currentLine += c;
+            
+            if (c == '\n') {
+                if (currentLine.indexOf("GET /") >= 0) {
+                    sendHTML(client);
+                    currentLine = "";
+                    client.stop();
+                    Serial.println("Client disconnected.");
+                    return 1;
+                }
+            }
+            if(currentLine.indexOf("POST /submitData") >= 0 && currentLine.indexOf("eof") >= 0) {
+                parseUserData(currentLine);
+                client.stop();
+                Serial.println("Client disconnected.");
+                return 0;
+            }
+        }
+    }
+
+    return 0;
 }
 void getUserData() {
 	img.pushImage(0, 0, 240, 240, DUCK_SETTING_240);
@@ -592,8 +585,8 @@ void getUserData() {
 	tft.setTextColor(TFT_WHITE);
 	tft.setTextSize(3);
 	tft.print("Setting...");
-	
-	while(getClient() != 1) {}
+    
+    while(getClient()) {}
 		
 	auto foo = url_encode(myBus.stationName);
 	strcpy(myBus.stationEncoded, foo);
