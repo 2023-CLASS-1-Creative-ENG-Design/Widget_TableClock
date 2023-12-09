@@ -541,15 +541,8 @@ void parseUserData(String data) {
 	strncpy(myWeather.city[1], city2.c_str(), sizeof(myWeather.city[1]) - 1);
 	myWeather.city[1][sizeof(myWeather.city[1]) - 1] = '\0';
 }
-			
-void getUserData() {
-	img.pushImage(0, 0, 240, 240, DUCK_SETTING_240);
-	img.pushSprite(0, 0);
-	// setting...
-	tft.setCursor(30, 55);  // 중앙정렬
-	tft.setTextColor(TFT_WHITE);
-	tft.setTextSize(3);
-	tft.print("Setting...");
+
+int getClient() {
 	
 	WiFiClient client = server.available();
 	if (client) {
@@ -585,8 +578,23 @@ void getUserData() {
 		}
 		client.stop();
 		Serial.println("Client disconnected.");
+		return 1
 	}
+	else return -1
+
 	
+}
+void getUserData() {
+	img.pushImage(0, 0, 240, 240, DUCK_SETTING_240);
+	img.pushSprite(0, 0);
+	// setting...
+	tft.setCursor(30, 55);  // 중앙정렬
+	tft.setTextColor(TFT_WHITE);
+	tft.setTextSize(3);
+	tft.print("Setting...");
+	
+	while(getClient() != 1) {}
+		
 	auto foo = url_encode(myBus.stationName);
 	strcpy(myBus.stationEncoded, foo);
 	free(foo);
