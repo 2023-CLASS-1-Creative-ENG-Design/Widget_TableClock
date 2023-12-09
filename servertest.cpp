@@ -429,69 +429,7 @@ void sendHTML(WiFiClient client) {
 	client.println("Connection: close");
 	client.println();
 	
-	client.println("<!DOCTYPE html>
-<html>
-<head>
-	<title>Data Input</title>
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			margin: 50px;
-		}
-		h2 {
-			color: #333;
-		}
-		label {
-			display: block;
-			margin-top: 10px;
-		}
-		input[type='text'] {
-			width: 200px;
-			padding: 5px;
-			margin-top: 5px;
-		}
-		input[type='submit'] {
-			width: 100px;
-			padding: 8px;
-			margin-top: 20px;
-			background-color: #4CAF50;
-			color: white;
-			border: none;
-			cursor: pointer;
-		}
-	</style>
-</head>
-<body>
-	<h2>Enter Bus Number, Bus Stop, Korean Stock, US Stock, WiFi Name, WiFi Password, City 1, and City 2</h2>
-	<form action='/submitData' method='post' id='dataForm'>
-		<label for='busNumber'>Bus Number:</label>
-		<input type='text' id='busNumber' name='busNumber'><br>
-		<label for='busStop'>Bus Stop:</label>
-		<input type='text' id='busStop' name='busStop'><br>
-		<label for='koreanStock1'>Korean Stock 1:</label>
-		<input type='text' id='koreanStock1' name='koreanStock1'><br>
-		<label for='koreanStock2'>Korean Stock 2:</label>
-		<input type='text' id='koreanStock2' name='koreanStock2'><br>
-		<label for='koreanStock3'>Korean Stock 3:</label>
-		<input type='text' id='koreanStock3' name='koreanStock3'><br>
-		<label for='usStock1'>US Stock 1:</label>
-		<input type='text' id='usStock1' name='usStock1'><br>
-		<label for='usStock2'>US Stock 2:</label>
-		<input type='text' id='usStock2' name='usStock2'><br>
-		<label for='usStock3'>US Stock 3:</label>
-		<input type='text' id='usStock3' name='usStock3'><br>
-		<label for='wifiName'>WiFi Name:</label>
-		<input type='text' id='wifiName' name='wifiName'><br>
-		<label for='wifiPassword'>WiFi Password:</label>
-		<input type='text' id='wifiPassword' name='wifiPassword'><br>
-		<label for='city1'>City 1:</label>
-		<input type='text' id='city1' name='city1'><br>
-		<label for='city2'>City 2:</label>
-		<input type='text' id='city2' name='city2'><br>
-		<input type='submit' value='Submit'>
-	</form>
-</body>
-</html>");
+	client.println("<!DOCTYPE html>\n<html>\n<head>\n	<title>Data Input</title>\n	<style>\n		body {\n			font-family: Arial, sans-serif;\n			margin: 50px;\n		}\n		h2 {\n			color: #333;\n		}\n		label {\n			display: block;\n			margin-top: 10px;\n		}\n		input[type='text'] {\n			width: 200px;\n			padding: 5px;\n			margin-top: 5px;\n		}\n		input[type='submit'] {\n			width: 100px;\n			padding: 8px;\n			margin-top: 20px;\n			background-color: #4CAF50;\n			color: white;\n			border: none;\n			cursor: pointer;\n		}\n	</style>\n</head>\n<body>\n	<h2>Enter Bus Number, Bus Stop, Korean Stock, US Stock, WiFi Name, WiFi Password, City 1, and City 2</h2>\n	<form action='/submitData' method='post' id='dataForm'>\n		<label for='busNumber'>Bus Number:</label>\n		<input type='text' id='busNumber' name='busNumber'><br>\n		<label for='busStop'>Bus Stop:</label>\n		<input type='text' id='busStop' name='busStop'><br>\n		<label for='koreanStock1'>Korean Stock 1:</label>\n		<input type='text' id='koreanStock1' name='koreanStock1'><br>\n		<label for='koreanStock2'>Korean Stock 2:</label>\n		<input type='text' id='koreanStock2' name='koreanStock2'><br>\n		<label for='koreanStock3'>Korean Stock 3:</label>\n		<input type='text' id='koreanStock3' name='koreanStock3'><br>\n		<label for='usStock1'>US Stock 1:</label>\n		<input type='text' id='usStock1' name='usStock1'><br>\n		<label for='usStock2'>US Stock 2:</label>\n		<input type='text' id='usStock2' name='usStock2'><br>\n		<label for='usStock3'>US Stock 3:</label>\n		<input type='text' id='usStock3' name='usStock3'><br>\n		<label for='wifiName'>WiFi Name:</label>\n		<input type='text' id='wifiName' name='wifiName'><br>\n		<label for='wifiPassword'>WiFi Password:</label>\n		<input type='text' id='wifiPassword' name='wifiPassword'><br>\n		<label for='city1'>City 1:</label>\n		<input type='text' id='city1' name='city1'><br>\n		<label for='city2'>City 2:</label>\n		<input type='text' id='city2' name='city2'><br>\n		<input type='submit' value='Submit'>\n	</form>\n</body>\n</html>");
 }
 
 String decodeURIComponent(String s) {
@@ -696,7 +634,7 @@ void setup()
 	img.createSprite(240, 240);
 	
 	
-	Serial.print("Setting AP...")
+	Serial.print("Setting AP...");
 	WiFi.softAP(ssid, password);
 	IPAddress IP = WiFi.softAPIP();
 	Serial.print("AP IP address: ");
@@ -704,7 +642,7 @@ void setup()
 	
 	server.begin();
 	
-	getUserData()
+	getUserData();
 	
 	Serial.println("-------------------------------------");
 	Serial.println("[SETUP] End");
@@ -862,7 +800,7 @@ void loop()
 			if(!checkWiFiStatus())
 				{
 					Serial.println("[ERROR] WiFi Disconnect");
-					getUserData(1);
+					getUserData();
 				}
 			tick_old[4] = tick_cur;
 		}
@@ -899,7 +837,7 @@ void initWiFi() {
 	else {
 		Serial.println();
 		Serial.println("WiFi Not Connected, Check [WiFi ID][WiFi PW]");
-		getUserData(1);
+		getUserData();
 	}
 }
 
