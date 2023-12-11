@@ -98,10 +98,15 @@ Ex) 아래와 같은 코드로 정류장 이름과 ID를 얻어올 수 있음
 ## 5. How to operate
 
 코드를 아두이노 장치에 업로드 후, widget_tableclock.cpp에 명시된 ssid와 password를 통해 노트북, 휴대폰 등의 장치로 wifi에 접속합니다.
+
 ![wifiname](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/9a491ca9-c74c-49a2-a189-7120db5f857e)
-접속이 완료되면 시리얼 모니터에 ESP32가 할당된 아래의 ip 주소가 나옵니다. \
+
+접속이 완료되면 시리얼 모니터에 ESP32가 할당된 아래의 ip 주소가 나옵니다.
+
 ![serial](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/93656f1f-3c3d-455d-baf7-b569c78cf0a7)
+
 wifi에 접속된 기기로 `"http://ESP32의 ip주소"`에 접속하면 아래의 화면이 출력됩니다.
+
 ![iphtml](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/2c289bc6-c742-4da1-859d-2b2bcf22b474)
 
 BUS
