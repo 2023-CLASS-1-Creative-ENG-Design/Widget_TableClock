@@ -37,7 +37,9 @@ TFT_eSPI tft = TFT_eSPI();
 #define TOUCH_RST 8
 
 #define EEPROM_SIZE 256
-/*************************** [CONSTANT Definition] ************************************/
+/*************************** [CONSTANT Definition] ************************************/\
+const char* ssid = "Widget_TableClock"; // 접속해야할 wifi 이름
+const char* password = "123456789"; // wifi 비밀번호
 
 /*************************** [API KEY Definition] ************************************/
 #define PUBLIC_DATA_API_KEY "HHec4G%2FFjjMjQIfzZa3yfZuItK93BQh%2BC%2FwkITl%2FCu8X3h%2BAjlF74glKicSnEN%2BVeZEOvstt07Zz%2Be%2BvmAlFVQ%3D%3D"
@@ -415,9 +417,6 @@ char *url_encode(const char *str) {
 	encoded[j] = '\0';
 	return encoded;
 }
-
-const char* ssid = "ESP32_test";
-const char* password = "123456789";
 
 WiFiServer server(80);
 
