@@ -3,7 +3,8 @@
 시리얼 모니터에 원하는 정보들을 입력하면 터치 스크린에 실시간으로 해당 정보들을 불러와 볼 수 있는 
 
 Widget_TableClock입니다.
-
+![Widget_tableclock](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/2db833df-8cfd-4056-b2a1-73ff5471262c)
+<img width="638" alt="widget" src="https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/12ecffb2-23f3-4bd9-b914-ac847b70ff54">
 
 
 
@@ -96,9 +97,30 @@ Ex) 아래와 같은 코드로 정류장 이름과 ID를 얻어올 수 있음
 
 ## 5. How to operate
 
+코드를 아두이노 장치에 업로드 후, widget_tableclock.cpp에 명시된 ssid와 password를 통해 노트북, 휴대폰 등의 장치로 wifi에 접속합니다.
+![wifiname](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/9a491ca9-c74c-49a2-a189-7120db5f857e)
+접속이 완료되면 시리얼 모니터에 ESP32가 할당된 아래의 ip 주소가 나옵니다. \
+![serial](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/93656f1f-3c3d-455d-baf7-b569c78cf0a7)
+wifi에 접속된 기기로 `"http://ESP32의 ip주소"`에 접속하면 아래의 화면이 출력됩니다.
+![iphtml](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/2c289bc6-c742-4da1-859d-2b2bcf22b474)
+
+BUS
+- Bus Number : 정류장에서 도착정보를 알고 싶은 버스의 번호
+- Bus Stop : 도착 정보를 원하는 정류장의 정확한 이름
 
 
-`[WiFi ID][WiFi PW][CITY1, CITY2][BUS, STATION][KR1, KR2, KR3][US1, US2, US3]`
+STOCK
+- Korean Stock : 원하는 한국 주식의 종목코드 세개
+- US Stock : 원하는 미국 주식의 종목코드 세개
 
-위의 정보들을 시리얼 모니터 상에 입력하여 동작을 시작합니다.
+
+WEATHER
+- City 1 : 날씨와 시간정보를 원하는 도시이름
+- City 2 : 날씨와 시간정보를 원하는 도시이름
+
+WIFI
+- WiFi Name : ESP32에 할당할 인터넷 사용가능한 wifi의 이름
+- WiFi Password : 해당 wifi의 비밀번호
+
+위의 정보들을 모두 기입후 웹페이지 하단의 submit 버튼을 누르면 esp32에서 데이터들을 받아 구조체에 저장한 후, API들을 통해 실시간으로 화면에 출력하는 방식입니다.
 
