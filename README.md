@@ -82,7 +82,9 @@ Ex) 아래와 같은 코드로 정류장 이름과 ID를 얻어올 수 있음
 
 
 ## 4. Hardware
-![Hardware](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/22108c7c-2a42-483d-b076-d2c6998f5209)
+![Hardware](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/dc801fbe-40bd-4b7a-97bb-21d2bd78bc1c)
+![hardware](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/ebb1af98-32c1-4b44-8dff-aeb7afb13d97)
+
 
 - [ESP32-C3-DevKitM-1](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/hw-reference/esp32c3/user-guide-devkitm-1.html)
     - [ESP32­-C3­-MINI-­1](https://www.espressif.com/sites/default/files/documentation/esp32-c3-mini-1_datasheet_en.pdf)
