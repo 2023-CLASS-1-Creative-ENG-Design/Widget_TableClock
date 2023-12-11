@@ -6,9 +6,11 @@ Widget_TableClock입니다.
 
 
 
+
 ## 1. Setup
 
 `git clone` 하여 폴더를 다운받은 후,  `.pio/libdeps/TFT_esPI` 폴더의 `User_Setup.h`를 삭제하고, root에 존재하는 `User_Setup.h`를 해당 폴더에 옮겨야 합니다.
+
 
 
 
@@ -20,6 +22,7 @@ Visual Studio Code를 이용해 PlatformIO IDE extension을 다운로드합니�
 다운로드가 완료되면 좌측 사이드바에 새로 생긴 PlatformIO를 클릭하여 PROJECT TASKS에서 Pick a folder를 클릭합니다.
 
 그런 다음 clone한 `Widget_TableClock` 폴더를 선택하여 환경을 세팅합니다.
+
 
 
 
@@ -37,6 +40,7 @@ Visual Studio Code를 이용해 PlatformIO IDE extension을 다운로드합니�
 #define BUS_API_SERVER "" // 버스 API 사용을 위한 SERVER 주소
 ```
 
+
 ### 날씨 API
 
 날씨 정보를 불러오는 OpenWeatherMap Open API를 사용하였습니다.
@@ -46,6 +50,7 @@ Visual Studio Code를 이용해 PlatformIO IDE extension을 다운로드합니�
 
 
 실제 코드에서는 시리얼 모니터 상에 입력된 도시 이름을 통해 실시간으로 날씨 정보를 불러와 스크린에 입력합니다.
+
 
 
 
@@ -74,6 +79,7 @@ Ex) 아래와 같은 코드로 정류장 이름과 ID를 얻어올 수 있음
 
 
 실제 코드에서는 시리얼 모니터에 원하는 정류장의 이름과 버스를 입력하면 해당 정류장의 이름을 통해 정류장의 id를 가져오고, 이를 통해 실시간으로 원하는 버스의 도착시간을 얻습니다.
+
 
 
 
