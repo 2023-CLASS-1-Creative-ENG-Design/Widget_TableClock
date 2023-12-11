@@ -56,21 +56,30 @@ Visual Studio Code를 이용해 PlatformIO IDE extension을 다운로드합니�
 
 
 ### 주식 API
-<국내>
-[금융위원회_주식시세정보 API](https://www.data.go.kr/data/15094808/openapi.do)
-[한국투자증권 Open Trading API](https://apiportal.koreainvestment.com/intro)
-[pykis 라이브러리](https://github.com/pjueon/pykis)
+<국내> </br>
+[금융위원회_주식시세정보 API](https://www.data.go.kr/data/15094808/openapi.do) </br>
+[한국투자증권 Open Trading API](https://apiportal.koreainvestment.com/intro) </br>
+[pykis 라이브러리](https://github.com/pjueon/pykis) </br>
 공공데이터 포털이 제공하는 "금융위원회_주식시세정보" API 와 한국투자증권이 당사 계좌 보유 유저에게 제공하는 "Open Trading API" 를 사용하였습니다. 보다 편리한 사용을 위해, 기존의 한국투자증권이 제공하는 API 를 활용하는 "pykis 라이브러리"를 사용하였습니다.  
 
-pykis 라이브러리를 사용하는 flask 파이썬 서버를 오라클 클라우드에서 백그라운드로 동작시켰고, 해당 ip 주소에 대해 국내 주식 종목 코드를 입력하면 실시간(현재가)가격과 전날 종가 가격을 받아옵니다.
+pykis 라이브러리를 사용하는 flask 파이썬 서버를 오라클 클라우드에서 백그라운드로 동작시켰고, 해당 ip 주소의 해당 포트에 대해 국내 주식 종목 코드를 입력하면 실시간(현재가)가격과 전날 종가 가격을 받아옵니다.
 
-ex)
+사용 예시)
 ```c
-"http://152.69.233.120:5000/005930"
+"http://개인서버 ip주소:5000/005930" (005939: 삼성전자 종목 코드)
 ```
 출력값: "73000 72600"
 
+<해외> </br>
+[Finhub API](https://finnhub.io/docs/api)
+해외 주식 가격 정보를 제공하는 "Finhub API" 를 사용하였습니다. 해당 API를 사용하기 위해서는 해당 사이트에 가입하여 token 을 발급받아야 합니다.
 
+사용 예시)
+```c
+"https://finnhub.io/api/v1/quote?symbol={해외 주식 종목명}&token={발급받은 토큰명} (AAPL: 애플 종목 코드)
+```
+출력값: 다음과 같은 json 형식의 데이터가 출력됩니다.
+``` {"c":195.71,"d":1.44,"dp":0.7412,"h":195.99,"l":193.67,"o":194.2,"pc":194.27,"t":1702069201}``` 이를 파싱하여 date, currentPrice, change(변화값), percentChange(등락비율) 등을 추출할 수 있습니다. 
 
 ###  버스 API
 
