@@ -68,10 +68,10 @@ pykis 라이브러리를 사용하는 flask 파이썬 서버를 오라클 클라
 ```c
 "http://개인서버 ip주소:5000/005930" (005939: 삼성전자 종목 코드)
 ```
-출력값: "73000 72600"
+출력값: ```"73000 72600"```
 
 <해외> </br>
-[Finhub API](https://finnhub.io/docs/api)
+[Finhub API](https://finnhub.io/docs/api) </br>
 해외 주식 가격 정보를 제공하는 "Finhub API" 를 사용하였습니다. 해당 API를 사용하기 위해서는 해당 사이트에 가입하여 token 을 발급받아야 합니다.
 
 사용 예시)
