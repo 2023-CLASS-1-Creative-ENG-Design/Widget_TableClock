@@ -81,9 +81,17 @@ Ex) 아래와 같은 코드로 정류장 이름과 ID를 얻어올 수 있음
 실제 코드에서는 시리얼 모니터에 원하는 정류장의 이름과 버스를 입력하면 해당 정류장의 이름을 통해 정류장의 id를 가져오고, 이를 통해 실시간으로 원하는 버스의 도착시간을 얻습니다.
 
 
+## 4. Hardware
 
+- [ESP32-C3-DevKitM-1](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/hw-reference/esp32c3/user-guide-devkitm-1.html)
+    - [ESP32­-C3­-MINI-­1](https://www.espressif.com/sites/default/files/documentation/esp32-c3-mini-1_datasheet_en.pdf)
+    - [ESP32-C3FN4](https://www.espressif.com/sites/default/files/documentation/esp32-c3_datasheet_en.pdf)
+  - Partition Scheme : Huge APP (3MB)   
+- [1.28 inch round Touch Display](https://www.waveshare.com/1.28inch-Touch-LCD.htm)
+    - LCD controller : GC9A01
+    - Touch controller : CST816S
 
-## 4. How to operate
+## 5. How to operate
 
 
 
