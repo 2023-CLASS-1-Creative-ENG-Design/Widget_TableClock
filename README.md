@@ -3,8 +3,9 @@
 시리얼 모니터에 원하는 정보들을 입력하면 터치 스크린에 실시간으로 해당 정보들을 불러와 볼 수 있는 
 
 Widget_TableClock입니다.
-![Widget_tableclock](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/2db833df-8cfd-4056-b2a1-73ff5471262c)
-<img width="638" alt="widget" src="https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/12ecffb2-23f3-4bd9-b914-ac847b70ff54">
+![WidgetTableClock](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/29f4f043-6a55-4d44-abb9-985fdab96d5f)
+
+![widget](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/44b750e0-ff15-42cd-a3c7-b06d0045d6c6)
 
 
 
@@ -151,4 +152,6 @@ WIFI
 - WiFi Password : 해당 wifi의 비밀번호
 
 위의 정보들을 모두 기입후 웹페이지 하단의 submit 버튼을 누르면 esp32에서 데이터들을 받아 구조체에 저장한 후, API들을 통해 실시간으로 화면에 출력하는 방식입니다.
+
+[WidgetTableClock 데모영상](https://www.youtube.com/watch?v=HHhxhThtotU)
 
