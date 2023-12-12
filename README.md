@@ -58,10 +58,9 @@ Visual Studio Code를 이용해 PlatformIO IDE extension을 다운로드합니�
 
 ### 주식 API
 <국내> </br>
-[금융위원회_주식시세정보 API](https://www.data.go.kr/data/15094808/openapi.do) </br>
 [한국투자증권 Open Trading API](https://apiportal.koreainvestment.com/intro) </br>
 [pykis 라이브러리](https://github.com/pjueon/pykis) </br>
-공공데이터 포털이 제공하는 "금융위원회_주식시세정보" API 와 한국투자증권이 당사 계좌 보유 유저에게 제공하는 "Open Trading API" 를 사용하였습니다. 보다 편리한 사용을 위해, 기존의 한국투자증권이 제공하는 API 를 활용하는 "pykis 라이브러리"를 사용하였습니다.  
+한국투자증권이 당사 계좌 보유 유저에게 제공하는 "Open Trading API" 를 사용하였습니다. 보다 편리한 사용을 위해, 기존의 한국투자증권이 제공하는 API 를 활용하는 "pykis 라이브러리"를 사용하였습니다.  
 
 pykis 라이브러리를 사용하는 flask 파이썬 서버를 오라클 클라우드에서 백그라운드로 동작시켰고, 해당 ip 주소의 해당 포트에 대해 국내 주식 종목 코드를 입력하면 실시간(현재가)가격과 전날 종가 가격을 받아옵니다.
 
