@@ -152,3 +152,5 @@ WIFI
 
 위의 정보들을 모두 기입후 웹페이지 하단의 submit 버튼을 누르면 esp32에서 데이터들을 받아 구조체에 저장한 후, API들을 통해 실시간으로 화면에 출력하는 방식입니다.
 
+[WidgetTableClock 데모영상](https://www.youtube.com/watch?v=HHhxhThtotU)
+
