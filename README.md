@@ -3,8 +3,8 @@
 시리얼 모니터에 원하는 정보들을 입력하면 터치 스크린에 실시간으로 해당 정보들을 불러와 볼 수 있는 
 
 Widget_TableClock입니다.
-![Widget_tableclock](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/2db833df-8cfd-4056-b2a1-73ff5471262c)
-<img width="638" alt="widget" src="https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/12ecffb2-23f3-4bd9-b914-ac847b70ff54">
+![widget_tableclock](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/fb96ab2b-2223-4317-a4d9-fd36e14d4585)
+![widget](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/44b750e0-ff15-42cd-a3c7-b06d0045d6c6)
 
 
 
