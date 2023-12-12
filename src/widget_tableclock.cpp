@@ -450,7 +450,7 @@ void sendHTML(WiFiClient client) {
 	client.println("Connection: close");
 	client.println();
 
-	client.println("<!DOCTYPE html>\n<html>\n  <head>\n    <title>Data Input</title>\n    <style>		\n    body {font-family: Arial, sans-serif;display: flex;justify-content: center;align-items: center; height: 100vh;margin: 0;background-color: #f3f3f3;}\n    fieldset {background: #fff;padding: 20px 20px 5px 20px;border-radius: 6px;box-shadow: 0 0 10px rgba(0,0,0,0.2);width: 350px;margin-bottom: 10px}\n    h2 {color: #af0f0f;padding: 10px;margin: -20px -20px 0 -20px;border-radius: 8px;text-align: center;}\n    .bodyTitle {background-color:#af0f0f;color: #fff;padding: 10px;margin: -20px -20px 10px -20px;border-radius: 8px 8px 0 0;}\n    .input-group {display: flex;justify-content: space-between;align-items: center;margin-bottom: 10px;}\n    input[type='text'] {width: 140px;padding: 5px;}\n    input[type='submit'] {width: 100%;padding: 8px;background-color: #797977;color: white;border: none;cursor: pointer;border-radius: 8px;transition: background-color 0.3s ease;}\n    input[type='submit']:hover {background-color: #494949;}\n    input[type='submit']:active {transform: scale(0.98);}\n    label, input[type='text'] {display: block;width: 100%;}\n    </style>\n    </head>\n  <body>\n    <div class='container'>\n    <h2>SMART TABLE CLOCK</h2>\n    <form action='/submitData' method='post' id='dataForm'>\n        <fieldset id='bus'>\n            <h3 class='bodyTitle'>BUS</h3>\n            <div class='input-group'>\n                <label for='busNumber'>Bus Number:</label>\n                <input type='text' id='busNumber' name='busNumber'><br>\n            </div>\n            <div class='input-group'>\n                <label for='busStop'>Bus Stop:</label>\n                <input type='text' id='busStop' name='busStop'><br>\n            </div>\n        </fieldset>\n        <fieldset id='koreaStock'>\n            <h3 class='bodyTitle'>STOCK</h3>\n            <div class='input-group'>\n                <label for='koreanStock1'>Korean Stock 1:</label>\n                <input type='text' id='koreanStock1' name='koreanStock1'><br>\n            </div>\n            <div class='input-group'>\n                <label for='koreanStock2'>Korean Stock 2:</label>\n                <input type='text' id='koreanStock2' name='koreanStock2'><br>\n            </div>\n            <div class='input-group'>\n                <label for='koreanStock3'>Korean Stock 3:</label>\n                <input type='text' id='koreanStock3' name='koreanStock3'><br>\n            </div>\n            <div class='input-group'>\n                <label for='usStock1'>US Stock 1:</label>\n                <input type='text' id='usStock1' name='usStock1'><br>\n            </div>\n            <div class='input-group'>\n                <label for='usStock2'>US Stock 2:</label>\n                <input type='text' id='usStock2' name='usStock2'><br>\n            </div>\n            <div class='input-group'>\n                <label for='usStock3'>US Stock 3:</label>\n                <input type='text' id='usStock3' name='usStock3'><br>\n            </div>\n        </fieldset>\n        <fieldset id='city'>\n            <h3 class='bodyTitle'>WEATHER</h3>\n            <div class='input-group'>\n                <label for='city1'>City 1:</label>	\n<input type='text' id='city1' name='city1'><br>\n            </div>\n            <div class='input-group'>\n                <label for='city2'>City 2:</label>		\n                <input type='text' id='city2' name='city2'><br>\n            </div>\n        </fieldset>\n        <fieldset id='wifi'>\n            <h3 class='bodyTitle'>WIFI</h3>\n            <div class='input-group'>\n                <label for='wifiName'>WiFi Name:</label>\n                <input type='text' id='wifiName' name='wifiName'><br>\n            </div>\n            <div class='input-group'>\n                <label for='wifiPassword'>WiFi Password:</label>	\n<input type='text' id='wifiPassword' name='wifiPassword'><br>\n            </div>\n        </fieldset>\n       <input type='text' id='eof' name='eof' style='display:none;'><br>\n            <input type='submit' value='Submit'>\n    </form>\n    </div>\n  </body>\n</html>");
+	client.println("<!DOCTYPE html>\n<html>\n  <head>\n    <title>Data Input</title>\n    <style>		\n    body {font-family: Arial, sans-serif;display: flex;justify-content: center;align-items: center; height: 100vh;margin: 0;background-color: #f3f3f3;}\n    fieldset {background: #fff;padding: 20px 20px 5px 20px;border-radius: 6px;box-shadow: 0 0 10px rgba(0,0,0,0.2);width: 350px;margin-bottom: 10px}\n    h2 {color: #af0f0f;padding: 10px;margin: -20px -20px 0 -20px;border-radius: 8px;text-align: center;}\n    .bodyTitle {background-color:#af0f0f;color: #fff;padding: 10px;margin: -20px -20px 10px -20px;border-radius: 8px 8px 0 0;}\n    .input-group {display: flex;justify-content: space-between;align-items: center;margin-bottom: 10px;}\n    input[type='text'] {width: 140px;padding: 5px;}\n    input[type='submit'] {width: 100%;padding: 8px;background-color: #797977;color: white;border: none;cursor: pointer;border-radius: 8px;transition: background-color 0.3s ease;}\n    input[type='submit']:hover {background-color: #494949;}\n    input[type='submit']:active {transform: scale(0.98);}\n    label, input[type='text'] {display: block;width: 100%;}\n    </style>\n    </head>\n  <body>\n    <div class='container'>\n    <h2>SMART TABLE CLOCK</h2>\n    <form action='/submitData' method='post' id='dataForm'>\n        <fieldset id='bus'>\n            <h3 class='bodyTitle'>BUS</h3>\n            <div class='input-group'>\n                <label for='busNumber'>Bus Number:</label>\n                <input type='text' id='busNumber' name='busNumber'><br>\n            </div>\n            <div class='input-group'>\n                <label for='busStop'>Bus Stop:</label>\n                <input type='text' id='busStop' name='busStop'><br>\n            </div>\n        </fieldset>\n        <fieldset id='koreaStock'>\n            <h3 class='bodyTitle'>STOCK</h3>\n            <div class='input-group'>\n                <label for='koreanStock1'>Korean Stock 1:</label>\n                <input type='text' id='koreanStock1' name='koreanStock1'><br>\n            </div>\n    <div class='input-group'>\n <label for='koreanStock1Name'>Korean Stock 1 Name:</label>\n <input type='text' id='koreanStock1Name' name='koreanStock1Name'><br>\n </div>\n         <div class='input-group'>\n                <label for='koreanStock2'>Korean Stock 2:</label>\n                <input type='text' id='koreanStock2' name='koreanStock2'><br>\n            </div>\n        <div class='input-group'>\n <label for='koreanStock2Name'>Korean Stock 2 Name:</label>\n <input type='text' id='koreanStock2Name' name='koreanStock2Name'><br>\n </div>\n   <div class='input-group'>\n         <label for='koreanStock3'>Korean Stock 3:</label>\n                <input type='text' id='koreanStock3' name='koreanStock3'><br>\n            </div>\n        <div class='input-group'>\n <label for='koreanStock3Name'>Korean Stock 3 Name:</label>\n <input type='text' id='koreanStock3Name' name='koreanStock3Name'><br>\n </div>\n   <div class='input-group'>\n        <label for='usStock1'>US Stock 1:</label>\n                <input type='text' id='usStock1' name='usStock1'><br>\n            </div>\n            <div class='input-group'>\n                <label for='usStock2'>US Stock 2:</label>\n                <input type='text' id='usStock2' name='usStock2'><br>\n            </div>\n            <div class='input-group'>\n                <label for='usStock3'>US Stock 3:</label>\n                <input type='text' id='usStock3' name='usStock3'><br>\n            </div>\n        </fieldset>\n        <fieldset id='city'>\n            <h3 class='bodyTitle'>WEATHER</h3>\n            <div class='input-group'>\n                <label for='city1'>City 1:</label>	\n<input type='text' id='city1' name='city1'><br>\n            </div>\n            <div class='input-group'>\n                <label for='city2'>City 2:</label>		\n                <input type='text' id='city2' name='city2'><br>\n            </div>\n        </fieldset>\n        <fieldset id='wifi'>\n            <h3 class='bodyTitle'>WIFI</h3>\n            <div class='input-group'>\n                <label for='wifiName'>WiFi Name:</label>\n                <input type='text' id='wifiName' name='wifiName'><br>\n            </div>\n            <div class='input-group'>\n                <label for='wifiPassword'>WiFi Password:</label>	\n<input type='text' id='wifiPassword' name='wifiPassword'><br>\n            </div>\n        </fieldset>\n       <input type='text' id='eof' name='eof' style='display:none;'><br>\n            <input type='submit' value='Submit'>\n    </form>\n    </div>\n  </body>\n</html>");
 	//client.println("<!DOCTYPE html>\n<html>\n<head>\n	<title>Data Input</title>\n	<style>\n		body {\n			font-family: Arial, sans-serif;\n			margin: 50px;\n		}\n		h2 {\n			color: #333;\n		}\n		label {\n			display: block;\n			margin-top: 10px;\n		}\n		input[type='text'] {\n			width: 200px;\n			padding: 5px;\n			margin-top: 5px;\n		}\n		input[type='submit'] {\n			width: 100px;\n			padding: 8px;\n			margin-top: 20px;\n			background-color: #4CAF50;\n			color: white;\n			border: none;\n			cursor: pointer;\n		}\n	</style>\n</head>\n<body>\n	<h2>Enter Bus Number, Bus Stop, Korean Stock, US Stock, WiFi Name, WiFi Password, City 1, and City 2</h2>\n	<form action='/submitData' method='post' id='dataForm'>\n		<label for='busNumber'>Bus Number:</label>\n		<input type='text' id='busNumber' name='busNumber'><br>\n		<label for='busStop'>Bus Stop:</label>\n		<input type='text' id='busStop' name='busStop'><br>\n		<label for='koreanStock1'>Korean Stock 1:</label>\n		<input type='text' id='koreanStock1' name='koreanStock1'><br>\n		<label for='koreanStock2'>Korean Stock 2:</label>\n		<input type='text' id='koreanStock2' name='koreanStock2'><br>\n		<label for='koreanStock3'>Korean Stock 3:</label>\n		<input type='text' id='koreanStock3' name='koreanStock3'><br>\n		<label for='usStock1'>US Stock 1:</label>\n		<input type='text' id='usStock1' name='usStock1'><br>\n		<label for='usStock2'>US Stock 2:</label>\n		<input type='text' id='usStock2' name='usStock2'><br>\n		<label for='usStock3'>US Stock 3:</label>\n		<input type='text' id='usStock3' name='usStock3'><br>\n		<label for='wifiName'>WiFi Name:</label>\n		<input type='text' id='wifiName' name='wifiName'><br>\n		<label for='wifiPassword'>WiFi Password:</label>\n		<input type='text' id='wifiPassword' name='wifiPassword'><br>\n		<label for='city1'>City 1:</label>\n		<input type='text' id='city1' name='city1'><br>\n		<label for='city2'>City 2:</label>\n		<input type='text' id='city2' name='city2'><input type='text' id='eof' name='eof' style='display:none;'><br>\n		<input type='submit' value='Submit'>\n	</form>\n</body>\n</html>");
 }
 
@@ -491,8 +491,19 @@ void parseUserData(String data) {
 	String busNumber = getValue(data, "busNumber");
 	String busStop = getValue(data, "busStop");
 	String koreanStock1 = getValue(data, "koreanStock1");
+	//변경 사항
+	String koreanStock1Name = getValue(data, "koreanStock1Name");
+	
 	String koreanStock2 = getValue(data, "koreanStock2");
+	
+	//변경 사항
+	String koreanStock2Name = getValue(data, "koreanStock2Name");
+	
 	String koreanStock3 = getValue(data, "koreanStock3");
+	
+	//변경 사항
+	String koreanStock3Name = getValue(data, "koreanStock3Name");
+
 	String usStock1 = getValue(data, "usStock1");
 	String usStock2 = getValue(data, "usStock2");
 	String usStock3 = getValue(data, "usStock3");
@@ -508,10 +519,16 @@ void parseUserData(String data) {
 	Serial.println(busStop);
 	Serial.print("Korean Stock 1: ");
 	Serial.println(koreanStock1);
+	//Serial.print("Korean Stock 1 Name: ");
+	//Serial.println(koreanStock1Name);
 	Serial.print("Korean Stock 2: ");
 	Serial.println(koreanStock2);
+	//Serial.print("Korean Stock 2 Name: ");
+	//Serial.println(koreanStock2Name);
 	Serial.print("Korean Stock 3: ");
 	Serial.println(koreanStock3);
+	//Serial.print("Korean Stock 3 Name: ");
+	//Serial.println(koreanStock3Name);
 	Serial.print("US Stock 1: ");
 	Serial.println(usStock1);
 	Serial.print("US Stock 2: ");
@@ -541,12 +558,24 @@ void parseUserData(String data) {
 	
 	strncpy(myStockKR.code[0], koreanStock1.c_str(), sizeof(myStockKR.code[0]) - 1);
 	myStockKR.code[0][sizeof(myStockKR.code[0]) - 1] = '\0'; // null-terminate
+
+	//----------변경 사항---------//
+	strncpy(myStockKR.name[0], koreanStock1Name.c_str(), sizeof(myStockKR.name[0]) - 1);
+	myStockKR.name[0][sizeof(myStockKR.name[0]) - 1] = '\0'; // null-terminate
 	
 	strncpy(myStockKR.code[1], koreanStock2.c_str(), sizeof(myStockKR.code[1]) - 1);
 	myStockKR.code[1][sizeof(myStockKR.code[1]) - 1] = '\0'; // null-terminate
+
+	//----------변경 사항---------//
+	strncpy(myStockKR.name[1], koreanStock2Name.c_str(), sizeof(myStockKR.name[1]) - 1);
+	myStockKR.name[1][sizeof(myStockKR.name[1]) - 1] = '\0'; // null-terminate
 	
 	strncpy(myStockKR.code[2], koreanStock3.c_str(), sizeof(myStockKR.code[2]) - 1);
 	myStockKR.code[2][sizeof(myStockKR.code[2]) - 1] = '\0'; // null-terminate
+
+	//----------변경 사항---------//
+	strncpy(myStockKR.name[2], koreanStock3Name.c_str(), sizeof(myStockKR.name[2]) - 1);
+	myStockKR.name[2][sizeof(myStockKR.name[2]) - 1] = '\0'; // null-terminate
 	
 	strncpy(myStockUS.name[0], usStock1.c_str(), sizeof(myStockUS.name[0]) - 1);
 	myStockUS.name[0][sizeof(myStockUS.name[0]) - 1] = '\0'; // null-terminate
@@ -567,7 +596,7 @@ void parseUserData(String data) {
 bool getClient() {
 
     WiFiClient client = server.available();
-
+	
 	if(!client) return false;
     
     Serial.println("New Client.");
@@ -711,6 +740,7 @@ void loop()
 		getUserDataHelper();
 		return;
 	}
+	
 	runner.execute();
 	
 	tick_cur = millis();
@@ -1027,10 +1057,12 @@ bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
     tft.printf("%s", myStockKR.date[stock]);
 
     // 종목
-    if(stock == 0){strcpy(myStockKR.name[stock],"LG생활건강");}
-    else if(stock == 1){strcpy(myStockKR.name[stock],"삼성전자");}
-    else if(stock == 2){strcpy(myStockKR.name[stock],"아모레퍼시픽");}
-    String str(myStockKR.name[stock]);
+    // 변경 사항(아래 3줄 주석 처리)
+	// if(stock == 0){strcpy(myStockKR.name[stock],"LG생활건강");}
+    // else if(stock == 1){strcpy(myStockKR.name[stock],"삼성전자");}
+    // else if(stock == 2){strcpy(myStockKR.name[stock],"아모레퍼시픽");}
+    
+	String str(myStockKR.name[stock]);
 
     int nameLen = strlen(myStockKR.name[stock]) / 3;
     // printf("name len %d\r\n", nameLen);
