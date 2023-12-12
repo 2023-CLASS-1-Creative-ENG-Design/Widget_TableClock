@@ -101,6 +101,7 @@ typedef struct
 
 typedef struct
 {
+<<<<<<< HEAD
   char code[3][9];         // 단축코드
 
   char name[3][120];          // 종목명
@@ -109,6 +110,15 @@ typedef struct
   char closePrice[3][12];     // 종가
   char change[3][10];         // 대비
   char percentChange[3][11];  // 등락률
+=======
+	char code[3][9];         // 단축코드
+	
+	char name[3][120];          // 종목명
+	char date[3][9];            // 기준일자
+	char closePrice[3][12];     // 종가
+	char change[3][10];         // 대비
+	char percentChange[3][11];  // 등락률
+>>>>>>> main
 } STOCK_KR;
 
 typedef struct
@@ -302,6 +312,7 @@ void updateBusArrivalCallback() {
 }
 
 void updateStockPriceKRPreviousDayCallback(int stock) {
+<<<<<<< HEAD
     WiFiClient mySocket;
     HTTPClient myHTTP;
 
@@ -370,6 +381,55 @@ void updateStockPriceKRPreviousDayCallback(int stock) {
     }
     Serial.println(changePercent, 4);
     sprintf(myStockKR.percentChange[stock], "%.2lf", changePercent);
+=======
+	WiFiClient mySocket;
+	HTTPClient myHTTP;
+	
+	int httpCode;
+	char buffer[300];
+	
+	snprintf(buffer, sizeof(buffer), "http://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo?serviceKey=%s&numOfRows=1&pageNo=1&likeSrtnCd=%s", PUBLIC_DATA_API_KEY, myStockKR.code[stock]);
+	myHTTP.begin(mySocket, buffer);
+	
+	httpCode = myHTTP.GET();
+	
+	if (httpCode == HTTP_CODE_OK) {
+		Serial.println("[OK]");
+		strcpy(xmlDoc, myHTTP.getString().c_str());
+	} else {
+		myHTTP.end();
+		return;
+	}
+	myHTTP.end();
+	
+	XMLDocument xmlDocument;
+	if (xmlDocument.Parse(xmlDoc) != XML_SUCCESS) {
+		return;
+	};
+	
+	XMLNode* root = xmlDocument.RootElement();
+	
+	// 종목명
+	XMLElement* element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("itmsNm");
+	strcpy(myStockKR.name[stock], element->GetText());
+	
+	// 기준일자
+	element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("basDt");
+	strcpy(myStockKR.date[stock], element->GetText());
+	myStockKR.date[stock][8] = '\0';
+	
+	// 종가
+	element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("clpr");
+	strcpy(myStockKR.closePrice[stock], element->GetText());
+	
+	// 대비
+	element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("vs");
+	strcpy(myStockKR.change[stock], element->GetText());
+	
+	// 등락률
+	element = root->FirstChildElement("body")->FirstChildElement("items")->FirstChildElement("item")->FirstChildElement("fltRt");
+	strcpy(myStockKR.percentChange[stock], element->GetText());
+>>>>>>> main
 }
 
 void updateStockPriceKRPreviousDayACallback() {
@@ -1010,6 +1070,7 @@ bool getBusArrival()  // getBusArrivalItem Operation
 
 bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
 {
+<<<<<<< HEAD
 	img.pushImage(0, 0, 240, 240, DUCK_BUS_240);
     img.pushSprite(0, 0);
 
@@ -1048,6 +1109,43 @@ bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
     else tft.setTextColor(TFT_RED, TFT_WHITE, 1);
     tft.setTextSize(2);
     tft.print(changeBuffer);
+=======
+	// 화면 전환
+	img.pushImage(0, 0, 240, 240, DUCK_STOCK_KR_240);
+	img.pushSprite(0, 0);
+	
+	// 날짜
+	tft.setCursor(120-(12*4), 30); // 중앙정렬
+	tft.setTextColor(TFT_WHITE);
+	tft.setTextSize(2);
+	tft.printf("%s", myStockKR.date[stock]);
+	
+	// 종목
+	String str(myStockKR.name[stock]);
+	int nameLen = strlen(myStockKR.name[stock]) / 3;
+	// printf("name len %d\r\n", nameLen);
+	AimHangul_v2(120 - (float)(nameLen/2) * 16, 50, str, TFT_WHITE);  // 중앙정렬
+	
+	// 종가
+	int closePriceLen = strlen(myStockKR.closePrice[stock]);
+	// printf("closePriceLen %d\r\n", closePriceLen);
+	tft.setCursor(120 - (float)(closePriceLen/2) * 20, 50 + 36);  // 중앙정렬
+	tft.setTextColor(TFT_WHITE);
+	tft.setTextSize(3);
+	tft.print(myStockKR.closePrice[stock]);
+	// printf("%d\r\n", tft.getCursorX());
+	
+	// 대비, 등락률
+	char changeBuffer[50];
+	snprintf(changeBuffer, sizeof(changeBuffer), "%s %s%%", myStockKR.change[stock], myStockKR.percentChange[stock]);
+	int changeBufferLen = strlen(changeBuffer);
+	// printf("changeBufferLen %d\r\n", changeBufferLen);
+	tft.setCursor(120 - (float)(changeBufferLen/2) * 12, 50 + 36 + 30);  // 중앙정렬
+	if (myStockKR.change[stock][0] == '-') tft.setTextColor(TFT_BLUE, TFT_WHITE, 1);
+	else tft.setTextColor(TFT_RED, TFT_WHITE, 1);
+	tft.setTextSize(2);
+	tft.print(changeBuffer);
+>>>>>>> main
 	
 	return true;
 }
