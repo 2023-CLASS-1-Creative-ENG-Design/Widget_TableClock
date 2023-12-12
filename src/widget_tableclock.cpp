@@ -564,11 +564,11 @@ void parseUserData(String data) {
 	myWeather.city[1][sizeof(myWeather.city[1]) - 1] = '\0';
 }
 
-int getClient() {
+bool getClient() {
 
-    WiFiClient client;
+    WiFiClient client = server.available();
 
-    while(!(client = server.available())) {}
+	if(!client) return false;
     
     Serial.println("New Client.");
     
@@ -585,7 +585,7 @@ int getClient() {
                     currentLine = "";
                     client.stop();
                     Serial.println("Client disconnected.");
-                    return 1;
+                    return false;
                 }
             }
             if(currentLine.indexOf("POST /submitData") >= 0 && currentLine.indexOf("eof") >= 0) {
@@ -593,24 +593,14 @@ int getClient() {
                 parseUserData(currentLine);
                 client.stop();
                 Serial.println("Client disconnected.");
-                return 0;
+                return true;
             }
         }
     }
 
-    return 0;
+    return true;
 }
-void getUserData() {
-	img.pushImage(0, 0, 240, 240, DUCK_SETTING_240);
-	img.pushSprite(0, 0);
-	// setting...
-	tft.setCursor(30, 55);  // 중앙정렬
-	tft.setTextColor(TFT_WHITE);
-	tft.setTextSize(3);
-	tft.print("Setting...");
-    
-    while(getClient()) {}
-		
+void getUserDataHelper() {
 	auto foo = url_encode(myBus.stationName);
 	strcpy(myBus.stationEncoded, foo);
 	free(foo);
@@ -629,6 +619,19 @@ void getUserData() {
 	delay(3000);
 	
 	while(!getBusStationId()) delay(1000);
+}
+void getUserData() {
+	img.pushImage(0, 0, 240, 240, DUCK_SETTING_240);
+	img.pushSprite(0, 0);
+	// setting...
+	tft.setCursor(30, 55);  // 중앙정렬
+	tft.setTextColor(TFT_WHITE);
+	tft.setTextSize(3);
+	tft.print("Setting...");
+    
+    while(!getClient()) {}
+
+	getUserDataHelper();
 }
 
 void setup() 
@@ -704,6 +707,10 @@ GESTURE prev = NONE;
 
 void loop() 
 {   
+	if(getClient()) {
+		getUserDataHelper();
+		return;
+	}
 	runner.execute();
 	
 	tick_cur = millis();
