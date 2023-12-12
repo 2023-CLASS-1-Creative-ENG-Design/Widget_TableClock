@@ -1010,7 +1010,7 @@ bool getBusArrival()  // getBusArrivalItem Operation
 
 bool getStockPriceKRPreviousDay(int stock)  // 한국주식 전날 시세
 {
-	img.pushImage(0, 0, 240, 240, DUCK_BUS_240);
+	img.pushImage(0, 0, 240, 240, DUCK_STOCK_KR_240);
     img.pushSprite(0, 0);
 
     // 날짜
