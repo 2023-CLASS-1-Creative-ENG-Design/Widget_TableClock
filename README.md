@@ -139,6 +139,7 @@ BUS
 
 STOCK
 - Korean Stock : 원하는 한국 주식의 종목코드 세개
+- Korean Stock Name: 종목코드에 대응하는 종목의 한글명
 - US Stock : 원하는 미국 주식의 종목코드 세개
 
 
