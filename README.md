@@ -154,3 +154,5 @@ WIFI
 
 [WidgetTableClock 데모영상](https://www.youtube.com/watch?v=HHhxhThtotU)
 
+
+[발표에 사용한 ppt 자료](https://www.canva.com/design/DAF2YugmFEQ/0_DHDZ-xFF8v2WAsDSTQKg/view?utm_content=DAF2YugmFEQ&utm_campaign=share_your_design&utm_medium=link&utm_source=shareyourdesignpanel)
