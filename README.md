@@ -130,7 +130,7 @@ Ex) 아래와 같은 코드로 정류장 이름과 ID를 얻어올 수 있음
 
 wifi에 접속된 기기로 `"http://ESP32의 ip주소"`에 접속하면 아래의 화면이 출력됩니다.
 
-![iphtml]([https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/123005829/2c289bc6-c742-4da1-859d-2b2bcf22b474](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/82355395/7c2eeaac-fe8b-406d-af9e-0078b362e2e1)
+![iphtml](https://github.com/2023-CLASS-1-Creative-ENG-Design/Widget_TableClock/assets/82355395/7c2eeaac-fe8b-406d-af9e-0078b362e2e1)
 
 BUS
 - Bus Number : 정류장에서 도착정보를 알고 싶은 버스의 번호
